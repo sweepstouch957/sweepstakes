@@ -48,7 +48,7 @@ export default function RegisterSweepstake() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Submitting form with data:", storeId);
-    
+
     if (!validatePhone(form.phone)) {
       toast.error("Phone number must match (123) 456-7890 format");
       return;
@@ -63,72 +63,68 @@ export default function RegisterSweepstake() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center"
+      className="min-h-screen flex flex-col items-center justify-center px-4"
       style={{
         background: "linear-gradient(to bottom, #1b3fac 0%, #000029 100%)",
       }}
     >
       <Toaster position="top-center" />
-      <section
-        style={{
-          background: "linear-gradient(to bottom, #1b3fac 0%, #000029 100%)",
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-        }}
-        className="w-full max-w-lg flex flex-col"
-      >
+
+      <section className="w-full max-w-2xl flex flex-col items-center justify-center pt-8 md:pt-20 px-4 space-y-8">
+        {/* Banner top */}
         <Image
           src={ImageLabrDay.src}
           alt="Labor Day"
           width={ImageLabrDay.width}
           height={ImageLabrDay.height}
           priority
-          className="max-w-[85%] w-[85%] h-auto"
+          className="w-full max-w-[440px] h-auto"
         />
-        <div className="animate-fade-in-up px-10 w-full">
-          <form
-            className="flex flex-col space-y-1 gap-2"
-            onSubmit={handleSubmit}
+
+        {/* Formulario */}
+        <form
+          onSubmit={handleSubmit}
+          className="w-full flex flex-col items-center gap-4 px-2 md:px-12"
+        >
+          <h1 className="text-white text-center leading-tight text-5xl md:text-6xl font-light">
+            Participate &<br />
+            <span className="text-[#08C7F7] font-bold text-5xl md:text-6xl">
+              Win a Car!
+            </span>
+          </h1>
+
+          <input
+            type="tel"
+            name="phone"
+            placeholder="(555) 123-4567"
+            value={form.phone}
+            onChange={handleChange}
+            required
+            className="rounded-[40px] border text-xl md:text-2xl bg-white px-6 py-3 w-full max-w-lg"
+          />
+
+          <button
+            type="submit"
+            className="bg-[#08C7F7] hover:bg-[#08C7F795] text-white rounded-full px-6 py-3 font-bold text-xl md:text-2xl w-full max-w-lg"
           >
-            <p className="text-[52px] leading-[48px] text-center">
-              <span className="text-white font-light">
-                Participate & <br />
-              </span>
-              <span className="font-bold text-[#08C7F7]">Win a Car!</span>
-            </p>
-
-            <input
-              type="tel"
-              name="phone"
-              placeholder="Phone Number"
-              value={form.phone}
-              onChange={handleChange}
-              required
-              className="rounded-[40px] border text-[28px] bg-white rounded px-6 py-2 focus:outline-none"
-            />
-
-            <button
-              type="submit"
-              className="bg-[#08C7F7] hover:bg-[#08C7F795] text-white rounded-full px-4 py-2 font-bold text-[28px]"
-            >
-              Submit
-            </button>
-          </form>
+            Submit
+          </button>
 
           {success && (
-            <p className="text-center text-green-600 font-medium animate-bounce">
-              🎉 You re successfully registered!
+            <p className="text-center text-green-400 font-medium animate-bounce">
+              🎉 You're successfully registered!
             </p>
           )}
-        </div>
+        </form>
+
+        {/* Imagen del carro */}
         <Image
           src={ImageBackgroundMobile.src}
-          alt="Labor Day"
+          alt="Nissan Versa"
           width={ImageBackgroundMobile.width}
           height={ImageBackgroundMobile.height}
           priority
-          className="max-w-[85%] w-[85%] h-auto"
+          className="w-full max-w-[460px] h-auto"
         />
       </section>
     </div>
