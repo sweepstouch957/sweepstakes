@@ -100,7 +100,7 @@ export default function RegisterSweepstake() {
             value={form.phone}
             onChange={handleChange}
             required
-            className="rounded-[40px] border text-xl md:text-2xl bg-white px-6 py-3 w-full max-w-lg"
+            className="rounded-[40px] border text-xl md:text-2xl bg-white px-6 py-3 w-full max-w-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#08C7F7] focus:border-transparent"
           />
 
           <button
