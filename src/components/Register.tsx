@@ -112,7 +112,7 @@ export default function RegisterSweepstake() {
 
           {success && (
             <p className="text-center text-green-400 font-medium animate-bounce">
-              🎉 You're successfully registered!
+              🎉 You are successfully registered!
             </p>
           )}
         </form>
