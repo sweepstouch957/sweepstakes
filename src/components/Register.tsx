@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -6,31 +7,19 @@ import toast, { Toaster } from "react-hot-toast";
 import Image from "next/image";
 import ImageBackgroundMobile from "@public/Carro.webp";
 import ImageLabrDay from "@public/LaborDay.webp";
-
-const validatePhone = (phone: string) =>
-  /^\(\d{3}\) \d{3}-\d{4}$/.test(phone);
-
-const formatPhone = (input: string) => {
-  const digits = input.replace(/\D/g, "").substring(0, 10);
-  const match = digits.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
-  if (!match) return input;
-
-  return [
-    match[1] ? `(${match[1]}` : "",
-    match[2] ? `) ${match[2]}` : "",
-    match[3] ? `-${match[3]}` : "",
-  ]
-    .join("")
-    .trim();
-};
+import { useAuth } from "@/lib/context/auth";
+import { formatPhone, validatePhone } from "@/lib/utils/formatPhone";
 
 export default function CombinedSweepstakePage() {
   const searchParams = useSearchParams();
   const storeIdFromUrl = searchParams.get("store");
 
-  const [storeId, setStoreId] = useState<string | null>(storeIdFromUrl);
+  const { user, login, loading, isLoaded } = useAuth();
+
   const [form, setForm] = useState({ phone: "", username: "", password: "" });
-  const [success, setSuccess] = useState<boolean>(false);
+  const [success, setSuccess] = useState(false);
+
+  const showRegisterForm = !!user || !!storeIdFromUrl;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -58,7 +47,7 @@ export default function CombinedSweepstakePage() {
     setTimeout(() => setSuccess(false), 3000);
   };
 
-  const handleLoginSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!form.username || !form.password) {
@@ -66,9 +55,13 @@ export default function CombinedSweepstakePage() {
       return;
     }
 
-    // Aquí normalmente validarías contra el backend
-    toast.success("¡Inicio de sesión exitoso!");
-    setStoreId("custom-store-id"); // Simulamos que se obtuvo el ID del supermercado
+    try {
+      await login(form.username, form.password);
+      toast.success("¡Inicio de sesión exitoso!");
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || "Error al iniciar sesión";
+      toast.error(errorMessage);
+    }
   };
 
   return (
@@ -89,76 +82,87 @@ export default function CombinedSweepstakePage() {
           className="w-full max-w-[500px] h-auto"
         />
 
-        {!storeId ? (
-          <form onSubmit={handleLoginSubmit} className="w-full px-4 flex flex-col gap-4">
-            <h2 className="text-white text-3xl text-center font-semibold">
-              Iniciar sesión del supermercado
-            </h2>
+        {isLoaded ? (
+          <>
+            {showRegisterForm ? (
+              <form
+                onSubmit={handleRegisterSubmit}
+                className="w-full flex flex-col items-center gap-4 px-2 md:px-12"
+              >
+                <h1 className="text-white text-center leading-tight text-5xl md:text-6xl font-light">
+                  Participate &<br />
+                  <span className="text-[#08C7F7] font-bold text-5xl md:text-6xl">
+                    Win a Car!
+                  </span>
+                </h1>
 
-            <input
-              type="text"
-              name="username"
-              placeholder="Usuario"
-              value={form.username}
-              onChange={handleChange}
-              required
-              className="rounded-[40px] border text-lg bg-white px-6 py-3 w-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#08C7F7]"
-            />
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="(555) 123-4567"
+                  value={form.phone}
+                  onChange={handleChange}
+                  required
+                  className="rounded-[40px] border text-xl md:text-2xl bg-white px-6 py-3 w-full max-w-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#08C7F7] focus:border-transparent"
+                />
 
-            <input
-              type="password"
-              name="password"
-              placeholder="Contraseña"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="rounded-[40px] border text-lg bg-white px-6 py-3 w-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#08C7F7]"
-            />
+                <button
+                  type="submit"
+                  className="bg-[#08C7F7] hover:bg-[#08C7F795] text-white rounded-full px-6 py-3 font-bold text-xl md:text-2xl w-full max-w-lg"
+                >
+                  Submit
+                </button>
 
-            <button
-              type="submit"
-              className="bg-[#08C7F7] hover:bg-[#08C7F795] text-white rounded-full px-6 py-3 text-xl font-bold"
-            >
-              Iniciar sesión
-            </button>
-          </form>
-        ) : (
-          <form
-            onSubmit={handleRegisterSubmit}
-            className="w-full flex flex-col items-center gap-4 px-2 md:px-12"
-          >
-            <h1 className="text-white text-center leading-tight text-5xl md:text-6xl font-light">
-              Participate &<br />
-              <span className="text-[#08C7F7] font-bold text-5xl md:text-6xl">
-                Win a Car!
-              </span>
-            </h1>
+                {success && (
+                  <p className="text-center text-green-400 font-medium animate-bounce">
+                    🎉 You are successfully registered!
+                  </p>
+                )}
+              </form>
+            ) : (
+              <form
+                onSubmit={handleLoginSubmit}
+                className="w-full px-4 flex flex-col gap-4"
+              >
+                <h2 className="text-white text-3xl text-center font-semibold">
+                  Iniciar sesión del supermercado
+                </h2>
 
-            <input
-              type="tel"
-              name="phone"
-              placeholder="(555) 123-4567"
-              value={form.phone}
-              onChange={handleChange}
-              required
-              className="rounded-[40px] border text-xl md:text-2xl bg-white px-6 py-3 w-full max-w-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#08C7F7] focus:border-transparent"
-            />
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="Usuario"
+                  value={form.username}
+                  onChange={handleChange}
+                  required
+                  className="rounded-[40px] border text-lg bg-white px-6 py-3 w-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#08C7F7]"
+                />
 
-            <button
-              type="submit"
-              className="bg-[#08C7F7] hover:bg-[#08C7F795] text-white rounded-full px-6 py-3 font-bold text-xl md:text-2xl w-full max-w-lg"
-            >
-              Submit
-            </button>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Contraseña"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  className="rounded-[40px] border text-lg bg-white px-6 py-3 w-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#08C7F7]"
+                />
 
-            {success && (
-              <p className="text-center text-green-400 font-medium animate-bounce">
-                🎉 You are successfully registered!
-              </p>
+                <button
+                  type="submit"
+                  className="bg-[#08C7F7] hover:bg-[#08C7F795] text-white rounded-full px-6 py-3 font-bold text-xl md:text-2xl w-full max-w-lg"
+                  disabled={loading}
+                >
+                  {loading ? "Cargando..." : "Login"}
+                </button>
+              </form>
             )}
-          </form>
+          </>
+        ) : (
+          <div className="flex justify-center items-center">
+            <div className="w-40 h-40 border-4 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
         )}
-
         <Image
           src={ImageBackgroundMobile.src}
           alt="Nissan Versa"
