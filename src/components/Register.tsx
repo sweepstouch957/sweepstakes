@@ -70,15 +70,15 @@ export default function RegisterSweepstake() {
     >
       <Toaster position="top-center" />
 
-      <section className="w-full max-w-2xl flex flex-col items-center justify-center pt-8 md:pt-20 px-4 space-y-8">
+      <section className="w-full max-w-2xl flex flex-col items-center justify-center pt-8 space-y-2">
         {/* Banner top */}
         <Image
           src={ImageLabrDay.src}
           alt="Labor Day"
-          width={ImageLabrDay.width}
+          width={ImageLabrDay.width}  
           height={ImageLabrDay.height}
           priority
-          className="w-full max-w-[440px] h-auto"
+          className="w-full max-w-[500px] h-auto"
         />
 
         {/* Formulario */}
@@ -124,7 +124,7 @@ export default function RegisterSweepstake() {
           width={ImageBackgroundMobile.width}
           height={ImageBackgroundMobile.height}
           priority
-          className="w-full max-w-[460px] h-auto"
+          className="w-full max-w-[520px] h-auto"
         />
       </section>
     </div>
