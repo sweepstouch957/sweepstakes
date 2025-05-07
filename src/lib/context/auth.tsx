@@ -9,7 +9,6 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { login as loginService, getMe } from "@/lib/services/auth.service";
 import { getStore, getStoreByOwnerId } from "../services/store.service";
@@ -37,13 +36,12 @@ interface AuthContextType {
   changeStore: () => void;
   store: Store | null;
   handleSetStore: (store: Store | null) => void;
+  setIsLoaded: (value: boolean) => void; // 👈 nuevo
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const searchParams = useSearchParams();
-  const urlStoreId = searchParams.get("store");
 
   const [user, setUser] = useState<User | null>(null);
   const [store, setStore] = useState<Store | null>(null);
@@ -120,6 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // 🧠 Si hay storeId en URL, no hacemos sesión
   useEffect(() => {
     const checkSession = async () => {
+      const urlStoreId = new URLSearchParams(window.location.search).get("store");
       if (urlStoreId) {
         setIsLoaded(true); // flujo público, omitimos getMe
         return;
@@ -135,7 +134,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     checkSession();
-  }, [fetchAndSetUser, urlStoreId]);
+  }, [fetchAndSetUser]);
 
   const contextValue = useMemo(
     () => ({
@@ -147,8 +146,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       logout,
       changeStore,
       handleSetStore,
+      setIsLoaded, // 👈 nuevo
     }),
-    [user, loading, isLoaded, store, login, logout, changeStore, handleSetStore]
+    [
+      user,
+      loading,
+      isLoaded,
+      store,
+      login,
+      logout,
+      changeStore,
+      handleSetStore,
+      setIsLoaded,
+    ]
   );
 
   return (
