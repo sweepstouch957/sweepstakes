@@ -116,7 +116,7 @@ export const useSweepstakeForm = () => {
       setTimeout(() => setSuccess(false), 3000);
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.error || "Error al registrar participación"
+        `${error}` || "Error al registrar participación"
       );
     }
   };

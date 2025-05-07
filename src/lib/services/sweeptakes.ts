@@ -19,6 +19,7 @@ export const createSweepstake = async (data: CreateParticipantPayload) => {
     const message =
       error?.response?.data?.error || "Error al registrar participante";
     console.error("❌ createSweepstake error:", message);
-    throw new Error(message);
+    
+    return Promise.reject(message);
   }
 };
