@@ -12,5 +12,5 @@ export default function SweepstakePage() {
     <Suspense fallback={<div className="text-center p-6">Loading...</div>}>
       <RegisterSweepstake />
     </Suspense>
-  );
+  );  
 }
