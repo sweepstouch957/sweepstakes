@@ -1,67 +1,64 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import toast, { Toaster } from "react-hot-toast";
 import Image from "next/image";
+import { Toaster } from "react-hot-toast";
+
+import { IconButton, Menu, MenuItem, Typography, Box } from "@mui/material";
+import MenuIcon from "@mui/icons-material/MenuRounded";
+import LogoutIcon from "@mui/icons-material/Logout";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+
 import ImageBackgroundMobile from "@public/Carro.webp";
 import ImageLabrDay from "@public/LaborDay.webp";
-import { useAuth } from "@/lib/context/auth";
-import { formatPhone, validatePhone } from "@/lib/utils/formatPhone";
+
+import RegisterForm from "./RegisterForm";
+import LoginForm from "./LoginForm";
+import { useSweepstakeForm } from "@/hooks/useSweepstakesPage";
 
 export default function CombinedSweepstakePage() {
-  const searchParams = useSearchParams();
-  const storeIdFromUrl = searchParams.get("store");
+  const {
+    form,
+    handleChange,
+    handleRegisterSubmit,
+    success,
+    isPromotor,
+    stores,
+    selectedStore,
+    setSelectedStore,
+    loadingStores,
+    isLoaded,
+    showRegisterForm,
+    handleLoginSubmit,
+    loading,
+    store,
+    logout,
+    changeStore
+  } = useSweepstakeForm();
 
-  const { user, login, loading, isLoaded } = useAuth();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(anchorEl);
 
-  const [form, setForm] = useState({ phone: "", username: "", password: "" });
-  const [success, setSuccess] = useState(false);
-
-  const showRegisterForm = !!user || !!storeIdFromUrl;
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    if (name === "phone") {
-      const formatted = formatPhone(value);
-      setForm((prev) => ({ ...prev, phone: formatted }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
   };
 
-  const handleRegisterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!validatePhone(form.phone)) {
-      toast.error("Phone number must match (123) 456-7890 format");
-      return;
-    }
-
-    toast.success("🎉 Successfully registered!");
-    setSuccess(true);
-    setForm((prev) => ({ ...prev, phone: "" }));
-
-    setTimeout(() => setSuccess(false), 3000);
+  const handleMenuClose = () => {
+    setAnchorEl(null);
   };
 
-  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleClearStore = () => {
+    localStorage.removeItem("storeId");
+    setSelectedStore(null);
+    handleMenuClose();
+    changeStore();
+  };
 
-    if (!form.username || !form.password) {
-      toast.error("Por favor completa usuario y contraseña.");
-      return;
-    }
-
-    try {
-      await login(form.username, form.password);
-      toast.success("¡Inicio de sesión exitoso!");
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || "Error al iniciar sesión";
-      toast.error(errorMessage);
-    }
+  const handleLogout = () => {
+    setSelectedStore(null);
+    handleMenuClose();
+    logout();
+    changeStore();
   };
 
   return (
@@ -72,6 +69,70 @@ export default function CombinedSweepstakePage() {
       }}
     >
       <Toaster position="top-center" />
+
+      {/* Botón hamburguesa */}
+      {isPromotor && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 16,
+            right: 16,
+            zIndex: 50,
+            display: "flex",
+            gap: 1,
+            alignItems: "center",
+          }}
+        >
+          <Typography
+            variant="h2"
+            sx={{
+              color: "white",
+              fontSize: "1em",
+              fontWeight: 600,
+              pl: 1,
+            }}
+          >
+            {store?.name || "Labor Day"}
+          </Typography>
+          <IconButton
+            onClick={handleMenuOpen}
+            size="large"
+            sx={{ backgroundColor: "#ffffff22", color: "white" }}
+          >
+            <MenuIcon fontSize="large" />
+          </IconButton>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={menuOpen}
+            onClose={handleMenuClose}
+            PaperProps={{
+              sx: {
+                mt: 1.5,
+                minWidth: 220,
+                backgroundColor: "#1b3fac",
+                color: "white",
+                borderRadius: 2,
+              },
+            }}
+          >
+            <MenuItem
+              onClick={handleClearStore}
+              sx={{ fontSize: "1.1rem", gap: 1 }}
+            >
+              <StorefrontIcon /> Cambiar tienda
+            </MenuItem>
+
+              <MenuItem
+                onClick={handleLogout}
+                sx={{ fontSize: "1.1rem", gap: 1 }}
+              >
+                <LogoutIcon /> Cerrar sesión
+              </MenuItem>
+          </Menu>
+        </Box>
+      )}
+
       <section className="w-full max-w-2xl flex flex-col items-center justify-center pt-8 space-y-4">
         <Image
           src={ImageLabrDay.src}
@@ -83,86 +144,32 @@ export default function CombinedSweepstakePage() {
         />
 
         {isLoaded ? (
-          <>
-            {showRegisterForm ? (
-              <form
-                onSubmit={handleRegisterSubmit}
-                className="w-full flex flex-col items-center gap-4 px-2 md:px-12"
-              >
-                <h1 className="text-white text-center leading-tight text-5xl md:text-6xl font-light">
-                  Participate &<br />
-                  <span className="text-[#08C7F7] font-bold text-5xl md:text-6xl">
-                    Win a Car!
-                  </span>
-                </h1>
-
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="(555) 123-4567"
-                  value={form.phone}
-                  onChange={handleChange}
-                  required
-                  className="rounded-[40px] border text-xl md:text-2xl bg-white px-6 py-3 w-full max-w-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#08C7F7] focus:border-transparent"
-                />
-
-                <button
-                  type="submit"
-                  className="bg-[#08C7F7] hover:bg-[#08C7F795] text-white rounded-full px-6 py-3 font-bold text-xl md:text-2xl w-full max-w-lg"
-                >
-                  Submit
-                </button>
-
-                {success && (
-                  <p className="text-center text-green-400 font-medium animate-bounce">
-                    🎉 You are successfully registered!
-                  </p>
-                )}
-              </form>
-            ) : (
-              <form
-                onSubmit={handleLoginSubmit}
-                className="w-full px-4 flex flex-col gap-4"
-              >
-                <h2 className="text-white text-3xl text-center font-semibold">
-                  Iniciar sesión del supermercado
-                </h2>
-
-                <input
-                  type="text"
-                  name="username"
-                  placeholder="Usuario"
-                  value={form.username}
-                  onChange={handleChange}
-                  required
-                  className="rounded-[40px] border text-lg bg-white px-6 py-3 w-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#08C7F7]"
-                />
-
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Contraseña"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                  className="rounded-[40px] border text-lg bg-white px-6 py-3 w-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#08C7F7]"
-                />
-
-                <button
-                  type="submit"
-                  className="bg-[#08C7F7] hover:bg-[#08C7F795] text-white rounded-full px-6 py-3 font-bold text-xl md:text-2xl w-full max-w-lg"
-                  disabled={loading}
-                >
-                  {loading ? "Cargando..." : "Login"}
-                </button>
-              </form>
-            )}
-          </>
+          showRegisterForm ? (
+            <RegisterForm
+              form={form}
+              handleChange={handleChange}
+              handleSubmit={handleRegisterSubmit}
+              success={success}
+              isPromotor={isPromotor && !localStorage.getItem("storeId")}
+              stores={stores}
+              selectedStore={selectedStore}
+              setSelectedStore={setSelectedStore}
+              loadingStores={loadingStores}
+            />
+          ) : (
+            <LoginForm
+              form={form}
+              handleChange={handleChange}
+              handleSubmit={handleLoginSubmit}
+              loading={loading}
+            />
+          )
         ) : (
           <div className="flex justify-center items-center">
             <div className="w-40 h-40 border-4 border-white border-t-transparent rounded-full animate-spin" />
           </div>
         )}
+
         <Image
           src={ImageBackgroundMobile.src}
           alt="Nissan Versa"

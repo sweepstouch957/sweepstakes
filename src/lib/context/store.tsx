@@ -2,7 +2,11 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { getStore, getStores, getStoreByOwnerId } from "@/lib/services/store.service";
+import {
+  getStore,
+  getStores,
+  getStoreByOwnerId,
+} from "@/lib/services/store.service";
 
 export interface Store {
   id: string;
@@ -32,6 +36,7 @@ export interface Store {
 interface StoreContextType {
   stores: Store[];
   selectedStore: Store | null;
+  loading: boolean;
   fetchStores: () => Promise<void>;
   fetchStore: (id: string) => Promise<void>;
   fetchStoreByOwnerId: (ownerId: string) => Promise<void>;
@@ -42,14 +47,18 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const fetchStores = async () => {
     try {
+      setLoading(true);
       const res = await getStores();
-      
+
       setStores(res);
+      setLoading(false);
     } catch (err) {
       console.error("Error fetching stores", err);
+      setLoading(false);
     }
   };
 
@@ -78,7 +87,14 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <StoreContext.Provider
-      value={{ stores, selectedStore, fetchStores, fetchStore, fetchStoreByOwnerId }}
+      value={{
+        stores,
+        selectedStore,
+        loading,
+        fetchStores,
+        fetchStore,
+        fetchStoreByOwnerId,
+      }}
     >
       {children}
     </StoreContext.Provider>
