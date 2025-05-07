@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Toaster } from "react-hot-toast";
 
-import { IconButton, Menu, MenuItem, Typography, Box } from "@mui/material";
+import { IconButton, Menu, MenuItem, Box } from "@mui/material";
 import MenuIcon from "@mui/icons-material/MenuRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
 import StorefrontIcon from "@mui/icons-material/Storefront";
@@ -15,7 +15,7 @@ import ImageLabrDay from "@public/LaborDay.webp";
 import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
 import { useSweepstakeForm } from "@/hooks/useSweepstakesPage";
-  
+
 export default function CombinedSweepstakePage() {
   const {
     form,
@@ -83,17 +83,6 @@ export default function CombinedSweepstakePage() {
             alignItems: "center",
           }}
         >
-          <Typography
-            variant="h2"
-            sx={{
-              color: "white",
-              fontSize: "1em",
-              fontWeight: 600,
-              pl: 1,
-            }}
-          >
-            {store?.name || "Labor Day"}
-          </Typography>
           <IconButton
             onClick={handleMenuOpen}
             size="large"
@@ -155,6 +144,7 @@ export default function CombinedSweepstakePage() {
               selectedStore={selectedStore}
               setSelectedStore={setSelectedStore}
               loadingStores={loadingStores}
+              store={store}
             />
           ) : (
             <LoginForm

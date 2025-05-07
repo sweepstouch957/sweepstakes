@@ -8,6 +8,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
+import { Store } from "@/lib/context/store";
 
 interface Props {
   form: { phone: string };
@@ -19,6 +20,7 @@ interface Props {
   selectedStore: string | null;
   setSelectedStore: (storeId: string) => void;
   loadingStores: boolean;
+  store: Store | null;
 }
 
 export default function RegisterForm({
@@ -31,6 +33,7 @@ export default function RegisterForm({
   selectedStore,
   setSelectedStore,
   loadingStores,
+  store,
 }: Props) {
   const showStoreSelect = isPromotor && !selectedStore;
 
@@ -71,11 +74,15 @@ export default function RegisterForm({
       onSubmit={handleSubmit}
       className="w-full flex flex-col items-center gap-4 px-2 md:px-12"
     >
-      <h1 className="text-white text-center leading-tight text-5xl md:text-6xl font-light">
+      <h1 className="text-white text-center leading-tight text-5xl md:text-6xl font-light !my-1">
         Participate &<br />
         <span className="text-[#08C7F7] font-bold text-5xl md:text-6xl">
           Win a Car!
         </span>
+        <br />
+        <p className="text-white text-center leading-tight text-lg font-light mt-2 mb-0">
+          {store?.name}
+        </p>
       </h1>
 
       <input
