@@ -11,8 +11,8 @@ export interface CreateParticipantPayload {
 }
 
 export const createSweepstake = async (data: CreateParticipantPayload) => {
-  try {
-    const res = await apiClient.post("/sweepstakes/register", data);
+  try { 
+    const res = await apiClient.post("/sweepstakes/participants/register", data);
     return res.data;
   } catch (error: any) {
     // Puedes personalizar este mensaje o lanzar uno genérico
