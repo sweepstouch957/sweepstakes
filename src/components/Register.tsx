@@ -15,7 +15,7 @@ import ImageLabrDay from "@public/LaborDay.webp";
 import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
 import { useSweepstakeForm } from "@/hooks/useSweepstakesPage";
-
+import Cookies from "js-cookie"
 export default function CombinedSweepstakePage() {
   const {
     form,
@@ -48,7 +48,7 @@ export default function CombinedSweepstakePage() {
   };
 
   const handleClearStore = () => {
-    localStorage.removeItem("storeId");
+    Cookies.remove("storeId");
     setSelectedStore(null);
     handleMenuClose();
     changeStore();
@@ -139,7 +139,7 @@ export default function CombinedSweepstakePage() {
               handleChange={handleChange}
               handleSubmit={handleRegisterSubmit}
               success={success}
-              isPromotor={isPromotor && !localStorage.getItem("storeId")}
+              isPromotor={isPromotor && !Cookies.get("storeId")}
               stores={stores}
               selectedStore={selectedStore}
               setSelectedStore={setSelectedStore}

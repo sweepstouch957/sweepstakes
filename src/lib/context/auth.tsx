@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { login as loginService, getMe } from "@/lib/services/auth.service";
 import { getStore, getStoreByOwnerId } from "../services/store.service";
 import { Store } from "./store";
+import Cookies from "js-cookie";
 
 interface User {
   _id: string;
@@ -51,13 +52,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadMerchantStore = useCallback(async (userId: string) => {
     const merchantStore = await getStoreByOwnerId(userId);
     if (merchantStore) {
-      localStorage.setItem("storeId", merchantStore._id);
+      Cookies.set("storeId", merchantStore._id);
       setStore(merchantStore);
     }
   }, []);
 
   const loadPromotorStore = useCallback(async () => {
-    const storeId = localStorage.getItem("storeId");
+    const storeId = Cookies.get("storeId");
     if (storeId) {
       const promotorStore = await getStore(storeId);
       if (promotorStore) {
@@ -69,9 +70,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleSetStore = useCallback((store: Store | null) => {
     setStore(store);
     if (store) {
-      localStorage.setItem("storeId", store._id);
+      Cookies.set("storeId", store._id);
     } else {
-      localStorage.removeItem("storeId");
+      Cookies.remove("storeId");
     }
   }, []);
 
@@ -105,14 +106,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = useCallback(() => {
     setUser(null);
     setStore(null);
-    localStorage.removeItem("storeId");
-    localStorage.removeItem("auth_token");
+    Cookies.remove("storeId");
+    Cookies.remove("auth_token");
     toast("Sesión cerrada");
   }, []);
 
   const changeStore = useCallback(() => {
     setStore(null);
-    localStorage.removeItem("storeId");
+    Cookies.remove("storeId");
   }, []);
 
   // 🧠 Si hay storeId en URL, no hacemos sesión

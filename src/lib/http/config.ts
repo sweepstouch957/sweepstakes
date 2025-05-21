@@ -1,6 +1,6 @@
 import axios from "axios";
 import toast from "react-hot-toast";
-
+import Cookies from "js-cookie";
 // Base URL configurable por entorno
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -16,7 +16,7 @@ const apiClient = axios.create({
 // 👉 Interceptor para añadir el token en cada request
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("auth_token");
+    const token = Cookies.get("auth_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -33,7 +33,7 @@ apiClient.interceptors.response.use(
   (error) => {
     // Si el token expira o no autorizado
     if (error.response?.status === 401) {
-      localStorage.removeItem("auth_token");
+      Cookies.remove("auth_token");
       toast.error("Sesión expirada. Por favor inicia sesión nuevamente.");
     }
 

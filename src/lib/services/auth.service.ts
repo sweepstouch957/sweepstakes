@@ -1,11 +1,11 @@
 // services/authService.ts
 
 import apiClient from "../http/config";
-
+import Cookies from "js-cookie";
 export const login = async (email: string, password: string) => {
   const res = await apiClient.post("/auth/login", { email, password });
   const token = res.data.token;
-  localStorage.setItem("auth_token", token);
+  Cookies.set("auth_token", token);
   return res.data;
 };
 
@@ -15,6 +15,6 @@ export const getMe = async () => {
 };
 
 export const logout = () => {
-  localStorage.removeItem("auth_token");
+  Cookies.remove("auth_token");
   window.location.href = "/login";
 };

@@ -10,6 +10,7 @@ import { createSweepstake } from "@/lib/services/sweeptakes";
 import { useAuth } from "@/lib/context/auth";
 import { useStore } from "@/lib/context/store";
 import { getStore } from "@/lib/services/store.service";
+import Cookies from "js-cookie";
 
 export const useSweepstakeForm = () => {
   const searchParams = useSearchParams();
@@ -67,7 +68,7 @@ export const useSweepstakeForm = () => {
       if (found) {
         handleSetStore(found);
       }
-      localStorage.setItem("storeId", selectedStore);
+      Cookies.set("storeId", selectedStore);
     }
   }, [selectedStore, stores, handleSetStore]);
 
@@ -92,7 +93,7 @@ export const useSweepstakeForm = () => {
       storeIdFromUrl ||
       selectedStore ||
       store?._id ||
-      localStorage.getItem("storeId") ||
+      Cookies.get("storeId") ||
       "";
 
     if (!resolvedStoreId) {
