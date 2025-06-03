@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { api } from "../http/api";
 import apiClient from "../http/config";
 
 export interface CreateParticipantPayload {
@@ -36,7 +35,10 @@ export const createSweepstakeDefault = async (
   data: CreateDefaultParticipantPayload
 ) => {
   try {
-    const res = await api.post("/sweepstakes/participants/register", data);
+    const res = await apiClient.post(
+      "/sweepstakes/participants/register",
+      data
+    );
     return res.data;
   } catch (error: any) {
     // Puedes personalizar este mensaje o lanzar uno genérico
