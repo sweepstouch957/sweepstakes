@@ -1,3 +1,4 @@
+import RegisterSweepstake from "@/components/RefferalForm";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 export default function SweepstakePage() {
   return (
     <Suspense fallback={<div className="text-center p-6">Loading...</div>}>
-       test
+      <RegisterSweepstake />
     </Suspense>
   );  
 }
