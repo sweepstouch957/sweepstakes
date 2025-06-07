@@ -12,7 +12,7 @@ import { useStore } from "@/lib/context/store";
 import { getStore } from "@/lib/services/store.service";
 import Cookies from "js-cookie";
 
-export const useSweepstakeForm = () => {
+export const useSweepstakeForm = (sweepstakeId:string) => {
   const searchParams = useSearchParams();
   const param = searchParams.get("store");
 
@@ -103,7 +103,7 @@ export const useSweepstakeForm = () => {
 
     try {
       await createSweepstake({
-        sweepstakeId: process.env.NEXT_PUBLIC_SWEEPSTAKE_ID!,
+        sweepstakeId,
         customerPhone: form.phone.replace(/[^0-9]/g, ""),
         customerName: "",
         storeId: resolvedStoreId,

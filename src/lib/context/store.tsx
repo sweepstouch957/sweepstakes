@@ -7,6 +7,7 @@ import {
   getStores,
   getStoreByOwnerId,
 } from "@/lib/services/store.service";
+import { usePathname } from "next/navigation";
 
 export interface Store {
   id: string;
@@ -48,11 +49,16 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(false);
+  const path = usePathname();
 
   const fetchStores = async () => {
     try {
       setLoading(true);
-      const res = await getStores();
+      const res = await getStores(
+        path === "/sweepstakes/carnewyear"
+          ? `${process.env.NEXT_PUBLIC_SWEEPSTAKE_NEW_YEAR}`
+          : `${process.env.NEXT_PUBLIC_SWEEPSTAKE_ID}`
+      );
 
       setStores(res);
       setLoading(false);

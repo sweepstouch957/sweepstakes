@@ -6,11 +6,13 @@ import toast, { Toaster } from "react-hot-toast";
 import ImageBackgroundMobile from "@public/Carro.webp";
 import ImageLabrDay from "@public/LaborDay.webp";
 import { Typography } from "@mui/material";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { formatPhone, validatePhone } from "@/lib/utils/formatPhone";
 import { createSweepstakeDefault } from "@/lib/services/sweeptakes";
 
-export default function CombinedSweepstakePage() {
+export const RegisterSweepstake: FC<{ sweepstakeId?: string }> = ({
+  sweepstakeId = `${process.env.NEXT_PUBLIC_SWEEPSTAKE_ID}`,
+}) => {
   const [value, setValue] = useState("");
   const [zipCode, setZipCode] = useState("");
 
@@ -37,7 +39,7 @@ export default function CombinedSweepstakePage() {
 
     try {
       await createSweepstakeDefault({
-        sweepstakeId: process.env.NEXT_PUBLIC_SWEEPSTAKE_ID!,
+        sweepstakeId,
         customerPhone: value.replace(/[^0-9]/g, ""),
         customerName: "",
         method: "qr",
@@ -133,4 +135,4 @@ export default function CombinedSweepstakePage() {
       </section>
     </div>
   );
-}
+};

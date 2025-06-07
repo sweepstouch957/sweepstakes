@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { FC, useState } from "react";
+import Image, { StaticImageData } from "next/image";
 import { Toaster } from "react-hot-toast";
 
 import { IconButton, Menu, MenuItem, Box } from "@mui/material";
@@ -15,8 +15,13 @@ import ImageLabrDay from "@public/LaborDay.webp";
 import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
 import { useSweepstakeForm } from "@/hooks/useSweepstakesPage";
-import Cookies from "js-cookie"
-export default function CombinedSweepstakePage() {
+import Cookies from "js-cookie";
+
+const CombinedSweepstakePage: FC<{ sweepstakeId?: string,image?:StaticImageData,bgColor?:string }> = ({
+  sweepstakeId = `${process.env.NEXT_PUBLIC_SWEEPSTAKE_ID}`,
+  image=ImageLabrDay,
+  bgColor="#1b3fac"
+}) => {
   const {
     form,
     handleChange,
@@ -33,8 +38,8 @@ export default function CombinedSweepstakePage() {
     loading,
     store,
     logout,
-    changeStore
-  } = useSweepstakeForm();
+    changeStore,
+  } = useSweepstakeForm(sweepstakeId);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
@@ -65,11 +70,10 @@ export default function CombinedSweepstakePage() {
     <div
       className="min-h-screen flex flex-col items-center justify-center px-4"
       style={{
-        background: "linear-gradient(to bottom, #1b3fac 0%, #000029 100%)",
+        background: `linear-gradient(to bottom, ${bgColor} 0%, #000029 100%)`,
       }}
     >
       <Toaster position="top-center" />
-
       {/* Botón hamburguesa */}
       {isPromotor && (
         <Box
@@ -99,7 +103,7 @@ export default function CombinedSweepstakePage() {
               sx: {
                 mt: 1.5,
                 minWidth: 220,
-                backgroundColor: "#1b3fac",
+                backgroundColor: bgColor,
                 color: "white",
                 borderRadius: 2,
               },
@@ -112,22 +116,22 @@ export default function CombinedSweepstakePage() {
               <StorefrontIcon /> Cambiar tienda
             </MenuItem>
 
-              <MenuItem
-                onClick={handleLogout}
-                sx={{ fontSize: "1.1rem", gap: 1 }}
-              >
-                <LogoutIcon /> Cerrar sesión
-              </MenuItem>
+            <MenuItem
+              onClick={handleLogout}
+              sx={{ fontSize: "1.1rem", gap: 1 }}
+            >
+              <LogoutIcon /> Cerrar sesión
+            </MenuItem>
           </Menu>
         </Box>
       )}
 
       <section className="w-full max-w-2xl flex flex-col items-center justify-center pt-8 space-y-4">
         <Image
-          src={ImageLabrDay.src}
+          src={image.src}
           alt="Labor Day"
-          width={ImageLabrDay.width}
-          height={ImageLabrDay.height}
+          width={image.width}
+          height={image.height}
           priority
           className="w-full max-w-[500px] h-auto"
         />
@@ -171,4 +175,6 @@ export default function CombinedSweepstakePage() {
       </section>
     </div>
   );
-}
+};
+
+export default CombinedSweepstakePage;
