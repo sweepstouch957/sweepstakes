@@ -1,6 +1,6 @@
-import RegisterSweepstake from "@/components/RefferalForm";
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { RegisterSweepstake } from "@/components/RefferalForm";
 
 export const metadata: Metadata = {
   title: "Car Labor day - Participa y Gana",
