@@ -4,7 +4,7 @@
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
 import ImageBackgroundMobile from "@public/Carro.webp";
-import ImageLabrDay from "@public/LaborDay.webp";
+import ImageLabrDay from "@public/WinACar.webp";
 import { Typography } from "@mui/material";
 import { FC, useState } from "react";
 import { formatPhone, validatePhone } from "@/lib/utils/formatPhone";
