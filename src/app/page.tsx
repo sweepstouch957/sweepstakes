@@ -1,9 +1,44 @@
-// pages/index.tsx
+"use client";
+
+import { useAuth } from '@/lib/context/auth';
+import { LoginForm } from '@/components/LoginForm';
+import { PromoterDashboard } from '@/components/PromoterDashboard';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
+import { CircularProgress, Box } from '@mui/material';
 
 export default function Home() {
+  const { user, isLoaded, logout } = useAuth();
+
+  // Mostrar loading mientras se verifica la autenticación
+  if (!isLoaded) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: "white" }} />
+      </Box>
+    );
+  }
+
+  // Si no está logueado, mostrar el formulario de login
+  if (!user) {
+    return <LoginForm />;
+  }
+
+  // Si es promotor y está logueado, mostrar el dashboard
+  if (user.role === 'promotor') {
+    return <PromoterDashboard />;
+  }
+
+  // Si es otro tipo de usuario, mostrar la página de inicio normal con opción de logout
   return (
     <div className="min-h-screen bg-[#fafafa] text-[#16286a] font-sans overflow-x-hidden flex flex-col">
       <Head>
@@ -22,7 +57,15 @@ export default function Home() {
           <a className="text-[#16286a] hover:text-[#b64991] transition" href="/contact">Contact</a>
         </nav>
         <div className="flex items-center gap-2">
-          <button className="bg-[#16286a] hover:bg-[#b64991] text-white text-sm md:text-base rounded-full px-6 py-2 font-semibold transition">Get Started</button>
+          <span className="text-sm text-gray-600">
+            Hola, {user.firstName} {user.lastName}
+          </span>
+          <button 
+            onClick={logout}
+            className="bg-[#d32f2f] hover:bg-[#c62828] text-white text-sm md:text-base rounded-full px-6 py-2 font-semibold transition"
+          >
+            Cerrar Sesión
+          </button>
         </div>
       </header>
 

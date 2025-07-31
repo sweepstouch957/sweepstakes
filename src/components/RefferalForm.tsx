@@ -10,8 +10,12 @@ import { FC, useState } from "react";
 import { formatPhone, validatePhone } from "@/lib/utils/formatPhone";
 import { createSweepstakeDefault } from "@/lib/services/sweeptakes";
 
-export const RegisterSweepstake: FC<{ sweepstakeId?: string }> = ({
+export const RegisterSweepstake: FC<{ 
+  sweepstakeId?: string;
+  shiftData?: any;
+}> = ({
   sweepstakeId = `${process.env.NEXT_PUBLIC_SWEEPSTAKE_ID}`,
+  shiftData,
 }) => {
   const [value, setValue] = useState("");
   const [zipCode, setZipCode] = useState("");
@@ -43,8 +47,8 @@ export const RegisterSweepstake: FC<{ sweepstakeId?: string }> = ({
         customerPhone: value.replace(/[^0-9]/g, ""),
         customerName: "",
         method: "qr",
-        createdBy: "",
-        storeId: "",
+        createdBy: shiftData?.shift?.promoterId?._id || "",
+        storeId: shiftData?.shift?.storeId || "",
         zipCode,
       });
 
