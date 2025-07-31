@@ -13,7 +13,7 @@ import ImageBackgroundMobile from "@public/Carro.webp";
 import ImageLabrDay from "@public/LaborDay.webp";
 
 import RegisterForm from "./RegisterForm";
-import LoginForm from "./LoginForm";
+import { LoginForm } from "./LoginForm";
 import { useSweepstakeForm } from "@/hooks/useSweepstakesPage";
 import Cookies from "js-cookie";
 
@@ -34,8 +34,8 @@ const CombinedSweepstakePage: FC<{ sweepstakeId?: string,image?:StaticImageData,
     loadingStores,
     isLoaded,
     showRegisterForm,
-    handleLoginSubmit,
-    loading,
+    // handleLoginSubmit, // Removido - ya no se usa con el nuevo LoginForm
+    // loading, // Removido - ya no se usa con el nuevo LoginForm
     store,
     logout,
     changeStore,
@@ -151,12 +151,7 @@ const CombinedSweepstakePage: FC<{ sweepstakeId?: string,image?:StaticImageData,
               store={store}
             />
           ) : (
-            <LoginForm
-              form={form}
-              handleChange={handleChange}
-              handleSubmit={handleLoginSubmit}
-              loading={loading}
-            />
+            <LoginForm />
           )
         ) : (
           <div className="flex justify-center items-center">
