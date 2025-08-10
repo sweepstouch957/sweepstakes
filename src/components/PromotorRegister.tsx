@@ -115,7 +115,10 @@ const CombinedSweepstakePage = () => {
                 <Typography variant="h5" className="text-white" mb={2}>
                   No tenés un turno activo en este momento.
                 </Typography>
-                <Link href="/promoter/shifts/search">
+                <Link 
+                  href={"https://work.sweepstouch.com/"}
+                  target="_blank"
+                >
                   <Button
                     variant="contained"
                     sx={{
@@ -202,7 +205,8 @@ const CombinedSweepstakePage = () => {
               startIcon={<BarChartIcon />}
               variant="outlined"
               sx={{ mb: 1, borderRadius: 4, textTransform: "none" }}
-              href="/promoter/stats"
+              href="https://work.sweepstouch.com/"
+              target="_blank"
             >
               Ver estadísticas
             </Button>
@@ -211,7 +215,7 @@ const CombinedSweepstakePage = () => {
               fullWidth
               variant="outlined"
               sx={{ mb: 1, borderRadius: 4, textTransform: "none" }}
-              href="/promoter/shifts/search"
+              href="https://work.sweepstouch.com/"
             >
               Buscar turnos disponibles
             </Button>
