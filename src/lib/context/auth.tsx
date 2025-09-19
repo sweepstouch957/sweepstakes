@@ -17,10 +17,12 @@ import Cookies from "js-cookie";
 
 interface User {
   _id: string;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
   phoneNumber: string;
+  profileImage?: string;
   role: string;
   store?: {
     _id: string;
