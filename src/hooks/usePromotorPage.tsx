@@ -9,11 +9,6 @@ import { formatPhone, validatePhone } from "@/lib/utils/formatPhone";
 import { createSweepstake, getSweeptakeById } from "@/lib/services/sweeptakes";
 import { useAuth } from "@/lib/context/auth";
 import { shiftService } from "@/lib/services/shift.service";
-import {
-  OtpService,
-  SendOtpDto,
-  VerifyOtpDto,
-} from "@/lib/services/otp.service";
 
 const qk = {
   activeShift: (userId?: string | null) =>
@@ -36,11 +31,8 @@ type MinimalShift = {
   totalEarnings?: number;
 };
 
-type Step = "phone" | "otp";
-
 const PINK = "#ff0080";
 
-/** Helpers locales **/
 const getErrorMessage = (
   err: unknown,
   fallback = "Ocurrió un error. Intenta otra vez."
@@ -71,23 +63,10 @@ export const usePromotorPage = () => {
   const [form, setForm] = useState({ phone: "", username: "", password: "" });
   const [success, setSuccess] = useState(false);
 
-  // ---- OTP / flujo
-  const [step, setStep] = useState<Step>("phone");
-  const [otp, setOtp] = useState("");
-  const [resendTimer, setResendTimer] = useState(0);
-  const [resendLeft, setResendLeft] = useState<number | undefined>(undefined);
-  const [attemptsLeft, setAttemptsLeft] = useState<number | undefined>(
-    undefined
-  );
-  const [errorSend, setErrorSend] = useState<string | null>(null);
-  const [verified, setVerified] = useState(false);
-  const [locked, setLocked] = useState(false);
-
   // ---- UX / info lateral
   const [recentPhones, setRecentPhones] = useState<string[]>([]);
   const [timeLeft, setTimeLeft] = useState<string>("");
 
-  const otpService = new OtpService();
   const isPromotor = user?.role === "promotor";
   const userId = user?._id ?? null;
   const phoneE164 = useMemo(() => formatE164FromUS(form.phone), [form.phone]);
@@ -143,11 +122,16 @@ export const usePromotorPage = () => {
     },
   });
 
-  // ---- Registro de participación (se llama post-OTP verificado)
+  // ---- Registro de participación (DIRECTO, sin OTP)
+  const [registerError, setRegisterError] = useState<string | null>(null);
+
   const registerMutation = useMutation({
     mutationFn: async () => {
       if (!validatePhone(form.phone)) {
         throw new Error("Phone number must match (123) 456-7890 format");
+      }
+      if (!phoneE164) {
+        throw new Error("Número de teléfono inválido.");
       }
       if (
         !hasActiveShift ||
@@ -166,6 +150,7 @@ export const usePromotorPage = () => {
       });
     },
     onSuccess: () => {
+      setRegisterError(null);
       toast.success("🎉 Participación registrada con éxito!");
       if (form.phone) {
         const masked = `(***) ***-${String(form.phone)
@@ -174,91 +159,15 @@ export const usePromotorPage = () => {
         setRecentPhones((prev) => [masked, ...prev].slice(0, 12));
       }
       setForm((prev) => ({ ...prev, phone: "" }));
-      setStep("phone");
-      setOtp("");
-      setVerified(false);
-      setErrorSend(null);
+      setSuccess(true);
     },
     onError: (error: any) => {
       const msg =
         error?.response?.data?.message ||
         error?.message ||
         "Error al registrar participación.";
+      setRegisterError(msg);
       toast.error(msg);
-    },
-  });
-
-  // Públicamente, por si quieres llamar manualmente
-  const registerNow = async () => {
-    await registerMutation.mutateAsync();
-  };
-
-  // ---- OTP Mutations (usando OtpService como pediste)
-  const sendOtpMutation = useMutation({
-    mutationFn: async (dto: SendOtpDto) => otpService.sendOtp(dto),
-    onSuccess: (res: any) => {
-      if (res?.success) {
-        setErrorSend(null);
-        setLocked(Boolean(res.locked));
-        setResendTimer(Math.max(res.secondsLeft ?? 60, 0));
-        setAttemptsLeft(res.attemptsLeft);
-        setResendLeft(res.resendLeft);
-      } else {
-        setErrorSend(res?.message || "No se pudo enviar el código.");
-      }
-    },
-    onError: (err) => {
-      setErrorSend(
-        getErrorMessage(err, "No se pudo enviar el código. Intenta de nuevo.")
-      );
-    },
-  });
-
-  const resendOtpMutation = useMutation({
-    mutationFn: async (dto: SendOtpDto) => otpService.sendOtp(dto),
-    onSuccess: (res: any) => {
-      if (res?.success) {
-        setErrorSend(null);
-        setLocked(Boolean(res.locked));
-        setResendTimer(Math.max(res.secondsLeft ?? 60, 0));
-        if (typeof res.resendLeft === "number") setResendLeft(res.resendLeft);
-        if (typeof res.attemptsLeft === "number")
-          setAttemptsLeft(res.attemptsLeft);
-      } else {
-        setErrorSend(res?.message || "No se pudo reenviar el código.");
-      }
-    },
-    onError: (err) =>
-      setErrorSend(getErrorMessage(err, "No se pudo reenviar el código.")),
-  });
-
-  const verifyOtpMutation = useMutation({
-    mutationFn: async (dto: VerifyOtpDto) => otpService.verifyOtp(dto),
-    onSuccess: async (res: any) => {
-      if (res?.success) {
-        setVerified(true);
-        setErrorSend(null);
-        // registra la participación automáticamente después del OTP OK
-        try {
-          await registerNow();
-          // OJO: NO cambiamos el step aquí; dejamos que el componente/OTP haga
-          // la UX de "volver al teléfono" (toast + autoReturn via OtpStep)
-        } catch (e) {
-          setVerified(false);
-          setErrorSend(getErrorMessage(e, "No se pudo completar el registro."));
-        }
-      } else {
-        setVerified(false);
-        setErrorSend(res?.message || "Código inválido.");
-        setAttemptsLeft((n) =>
-          typeof n === "number" ? Math.max(n - 1, 0) : n
-        );
-      }
-    },
-    onError: (err) => {
-      setVerified(false);
-      setErrorSend(getErrorMessage(err, "Código inválido."));
-      setAttemptsLeft((n) => (typeof n === "number" ? Math.max(n - 1, 0) : n));
     },
   });
 
@@ -269,55 +178,25 @@ export const usePromotorPage = () => {
     setForm((prev) => ({ ...prev, [name]: updatedValue }));
   };
 
+  // Ahora el submit REGISTRA directamente
   const onPhoneSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!phoneE164 || locked) return;
-    setStep("otp");
-    setOtp("");
-    setErrorSend(null);
-    setVerified(false);
-    await sendOtpMutation.mutateAsync({ phone: phoneE164, channel: "sms" });
+    setRegisterError(null);
+    await registerMutation.mutateAsync();
   };
 
-  const onResend = async () => {
-    if (locked) return;
-    if (typeof resendLeft === "number" && resendLeft <= 0) return;
-    setErrorSend(null);
-    await resendOtpMutation.mutateAsync({ phone: phoneE164, channel: "sms" });
+  const handleRegisterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setRegisterError(null);
+    await registerMutation.mutateAsync();
   };
 
-  const onVerify = async (val: string) => {
-    if (locked) return;
-    if (verifyOtpMutation.isPending || val.length !== 6) return;
-    if (typeof attemptsLeft === "number" && attemptsLeft <= 0) return;
-    setErrorSend(null);
-    await verifyOtpMutation.mutateAsync({ phone: phoneE164, code: val });
+  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await loginMutation.mutateAsync();
   };
 
-  const goToPhone = () => {
-    setStep("phone");
-    setErrorSend(null);
-    setVerified(false);
-    setOtp("");
-  };
-
-  const goToOtp = () => {
-    if (!phoneE164) return;
-    setStep("otp");
-    setErrorSend(null);
-  };
-
-  // ---- Effects: timers y countdown
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (step !== "otp") return;
-    if (resendTimer <= 0) return;
-    timerRef.current = setTimeout(() => setResendTimer((s) => s - 1), 1000);
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [step, resendTimer]);
-
+  // ---- Countdown de turno
   useEffect(() => {
     if (!activeShift?.endTime) return;
 
@@ -339,17 +218,6 @@ export const usePromotorPage = () => {
     return () => clearInterval(interval);
   }, [activeShift?.endTime]);
 
-  // ---- Otros handlers públicos
-  const handleRegisterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    await registerMutation.mutateAsync();
-  };
-
-  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    await loginMutation.mutateAsync();
-  };
-
   // ---- Flags de carga y fetch
   const loading =
     authLoading ||
@@ -362,11 +230,8 @@ export const usePromotorPage = () => {
   const resolvingShift =
     isPromotor && (isLoadingActiveShift || activeShift === undefined);
 
-  const isResending = resendOtpMutation.isPending || sendOtpMutation.isPending;
   const registerPending = registerMutation.isPending;
-  const isVerifying = verifyOtpMutation.isPending || registerPending;
 
-  // ---- Return: TODO listo para UI
   return {
     // form
     form,
@@ -393,30 +258,14 @@ export const usePromotorPage = () => {
     fetchingBackground,
     resolvingShift,
 
-    // registro (post-OTP)
-    registerNow,
+    // registro directo
+    registerNow: async () => registerMutation.mutateAsync(),
     registerPending,
     success,
     setSuccess,
-    step,
-    setStep, // por si lo necesitas directo
-    goToPhone,
-    goToOtp,
-    otp,
-    setOtp,
-    resendTimer,
-    resendLeft,
-    attemptsLeft,
-    errorSend,
-    verified,
-    locked,
+    registerError,
 
-    onPhoneSubmit,
-    onResend,
-    onVerify,
-
-    isResending,
-    isVerifying,
+    // UI extra
     timeLeft,
     recentPhones,
   };

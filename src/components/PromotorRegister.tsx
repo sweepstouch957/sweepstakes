@@ -8,7 +8,6 @@ import {
   Typography,
   Stack,
   Paper,
-  CircularProgress,
   Alert,
   LinearProgress,
   Skeleton,
@@ -24,7 +23,7 @@ import Link from "next/link";
 import ImageBackgroundMobile from "@public/Carro.webp";
 import LaborDay from "@public/LaborDay.webp";
 
-import OtpStep from "./Otp";
+// ❌ Eliminado: import OtpStep from "./Otp";
 import LoginCard from "./LoginCard";
 import PromoterDrawer from "./Drawer";
 
@@ -55,7 +54,7 @@ const BeautifulSpinner = () => (
         borderRadius: "50%",
         border: "4px solid rgba(255,255,255,0.35)",
         borderTopColor: "#fff",
-        animation: "spin 1s linear infinite",
+        animation: "spin 1s linear inf  te",
         "@keyframes spin": {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
@@ -134,7 +133,7 @@ const NoActiveShiftCard = () => (
     >
       Buscar turnos disponibles
     </Button>
-  </Paper>  
+  </Paper>
 );
 
 /* ---------- Componente principal ---------- */
@@ -144,9 +143,9 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
     // form & handlers
     form,
     handleChange,
-    handleLoginSubmit,
 
-    // auth/UI
+    // login/auth/UI
+    handleLoginSubmit,
     loading,
     isLoaded,
     isPromotor,
@@ -163,27 +162,13 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
     fetchingBackground,
     resolvingShift,
 
-    // ---- OTP flow expuesto por el hook
-    step,
-    setStep,
-    otp,
-    setOtp,
-    resendTimer,
-    resendLeft,
-    attemptsLeft,
-    errorSend,
-    verified,
-    locked,
+    // registro directo
+    registerPending,
+    registerError,
 
-    onPhoneSubmit,
-    onResend,
-    onVerify,
-
-    isResending,
-    isVerifying,
-
-    timeLeft,
-    recentPhones,
+    // submit
+    // ⤵️ Ahora este submit registra directamente sin OTP
+    registerNow, // por si lo querés llamar manual
   } = usePromotorPage();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -230,7 +215,7 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
         </Box>
       )}
 
-      {/* Botón para abrir Drawer */}
+      {/* Drawer */}
       {user && (
         <IconButton
           onClick={() => setDrawerOpen(true)}
@@ -250,7 +235,6 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
         </IconButton>
       )}
 
-      {/* Drawer con info de promotora */}
       {user && (
         <PromoterDrawer
           open={drawerOpen}
@@ -258,9 +242,10 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
           user={user}
           activeShift={activeShift}
           hasActiveShift={!!hasActiveShift}
-          timeLeft={timeLeft}
+          // timeLeft ahora viene del hook, si lo quieres mostrar agrega la prop
+          timeLeft={undefined as any}
           handleLogout={handleLogout}
-          recentPhones={recentPhones}
+          recentPhones={[]}
         />
       )}
 
@@ -316,7 +301,7 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
           isPromotor &&
           (!hasActiveShift || !activeShift) && <NoActiveShiftCard />}
 
-        {/* FORMULARIO: SOLO CON TURNO ACTIVO */}
+        {/* FORMULARIO: SOLO CON TURNO ACTIVO (sin OTP) */}
         {!showLoadingBlock &&
           user &&
           isPromotor &&
@@ -324,7 +309,10 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
           activeShift && (
             <Paper
               component="form"
-              onSubmit={onPhoneSubmit}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await registerNow();
+              }}
               elevation={0}
               sx={{
                 width: "100%",
@@ -337,7 +325,7 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
                 border: "1px solid rgba(255,255,255,0.18)",
               }}
             >
-              {/* Imagen superior con espacio reservado (sin CLS) */}
+              {/* Imagen superior */}
               <Box
                 sx={{
                   width: "100%",
@@ -347,7 +335,6 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
                   overflow: "hidden",
                   position: "relative",
                   aspectRatio: heroRatio,
-                  boxShadow: "0 10px 28px rgba(0,0,0,.15)",
                 }}
               >
                 <Image
@@ -390,209 +377,107 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
                 </Typography>
               </Stack>
 
-              {/* Paso 1: Teléfono */}
-              {step === "phone" && (
-                <Stack spacing={1.5} alignItems="center" sx={{ mt: 1 }}>
-                  <Box sx={{ width: "100%", maxWidth: 520 }}>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{
-                        color: "rgba(255,255,255,.9)",
-                        mb: 0.5,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Número de teléfono
-                    </Typography>
-
-                    <TextField
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      autoComplete="tel"
-                      inputMode="tel"
-                      placeholder="(555) 123-4567"
-                      value={form.phone}
-                      onChange={handleChange}
-                      required
-                      fullWidth
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Typography sx={{ color: PINK, fontWeight: 800 }}>
-                              +1
-                            </Typography>
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          backgroundColor: "#fff",
-                          color: PINK,
-                          fontWeight: 600,
-                          borderRadius: 3,
-                          boxShadow: "0 8px 20px rgba(255,0,128,0.18)",
-                          "& fieldset": {
-                            borderColor: "rgba(255,255,255,0.85)",
-                          },
-                          "&:hover fieldset": {
-                            borderColor: "rgba(255,255,255,0.95)",
-                          },
-                          "&.Mui-focused fieldset": {
-                            borderColor: PINK,
-                            boxShadow: "0 0 0 4px rgba(255,0,128,0.18)",
-                          },
-                        },
-                        "& .MuiInputBase-input::placeholder": {
-                          color: "rgba(255,0,128,0.55)",
-                          opacity: 1,
-                        },
-                        caretColor: PINK,
-                      }}
-                    />
-                  </Box>
-
-                  <Button
-                    type="submit"
-                    disabled={isResending}
-                    variant="contained"
+              {/* Único paso: Teléfono → registra */}
+              <Stack spacing={1.5} alignItems="center" sx={{ mt: 1 }}>
+                <Box sx={{ width: "100%", maxWidth: 520 }}>
+                  <Typography
+                    variant="subtitle2"
                     sx={{
-                      width: "100%",
-                      maxWidth: 520,
-                      height: 56,
-                      borderRadius: 999,
-                      fontWeight: 900,
-                      fontSize: 18,
-                      textTransform: "none",
-                      backgroundColor: "#fff",
-                      color: PINK,
-                      boxShadow: "0 14px 34px rgba(255,255,255,0.35)",
-                      "&:hover": {
-                        backgroundColor: "#fff",
-                        opacity: 0.96,
-                        boxShadow: "0 18px 40px rgba(255,255,255,0.42)",
-                      },
+                      color: "rgba(255,255,255,.9)",
+                      mb: 0.5,
+                      fontWeight: 600,
                     }}
                   >
-                    {isResending ? "Enviando..." : "Continuar"}
-                  </Button>
+                    Número de teléfono
+                  </Typography>
 
-                  {!!errorSend && (
-                    <Alert
-                      severity="error"
-                      variant="filled"
-                      sx={{
-                        bgcolor: "#ff1744",
-                        color: "white",
-                        width: "100%",
-                        maxWidth: 520,
-                      }}
-                    >
-                      {errorSend}
-                    </Alert>
-                  )}
-                </Stack>
-              )}
+                  <TextField
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    placeholder="(555) 123-4567"
+                    value={form.phone}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Typography sx={{ color: PINK, fontWeight: 800 }}>
+                            +1
+                          </Typography>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: "#fff",
+                        color: PINK,
+                        fontWeight: 600,
+                        borderRadius: 3,
+                        boxShadow: "0 8px 20px rgba(255,0,128,0.18)",
+                        "& fieldset": { borderColor: "rgba(255,255,255,0.85)" },
+                        "&:hover fieldset": {
+                          borderColor: "rgba(255,255,255,0.95)",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: PINK,
+                          boxShadow: "0 0 0 4px rgba(255,0,128,0.18)",
+                        },
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "rgba(255,0,128,0.55)",
+                        opacity: 1,
+                      },
+                      caretColor: PINK,
+                    }}
+                  />
+                </Box>
 
-              {/* Paso 2: OTP */}
-              {step === "otp" && (
-                <Paper
-                  elevation={0}
+                <Button
+                  type="submit"
+                  disabled={registerPending}
+                  variant="contained"
                   sx={{
                     width: "100%",
-                    maxWidth: 580,
-                    mx: "auto",
-                    mt: 2,
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    bgcolor: "rgba(255,255,255,0.12)",
-                    backdropFilter: "blur(8px)",
-                    p: 2,
+                    maxWidth: 520,
+                    height: 56,
+                    borderRadius: 999,
+                    fontWeight: 900,
+                    fontSize: 18,
+                    textTransform: "none",
+                    backgroundColor: "#fff",
+                    color: PINK,
+                    boxShadow: "0 14px 34px rgba(255,255,255,0.35)",
+                    "&:hover": {
+                      backgroundColor: "#fff",
+                      opacity: 0.96,
+                      boxShadow: "0 18px 40px rgba(255,255,255,0.42)",
+                    },
                   }}
                 >
-                  <Stack spacing={2.25} alignItems="center">
-                    {/* Caso especial: backend dice "No se pudo enviar el OTP" */}
-                    {errorSend === "No se pudo enviar el OTP" ? (
-                      <Stack alignItems="center" spacing={1.2}>
-                        <Typography
-                          variant="h6"
-                          sx={{ color: "#fff", fontWeight: 900 }}
-                        >
-                          No pudimos enviar el código
-                        </Typography>
-                        <Typography sx={{ color: "rgba(255,255,255,.95)" }}>
-                          Verifica que el número exista o corrígelo.
-                        </Typography>
+                  {registerPending ? "Registrando…" : "Registrar participación"}
+                </Button>
 
-                        <Button
-                          onClick={() => setStep("phone")}
-                          variant="contained"
-                          sx={{
-                            mt: 0.5,
-                            borderRadius: 999,
-                            fontWeight: 900,
-                            px: 2.6,
-                            py: 0.9,
-                            textTransform: "none",
-                            backgroundColor: "#ffffff",
-                            color: PINK,
-                            boxShadow: "0 14px 34px rgba(255,255,255,0.35)",
-                            "&:hover": {
-                              backgroundColor: "#ffffff",
-                              opacity: 0.96,
-                              boxShadow: "0 18px 40px rgba(255,255,255,0.42)",
-                            },
-                          }}
-                        >
-                          Cambiar número
-                        </Button>
-                      </Stack>
-                    ) : (
-                      <>
-                        <OtpStep
-                          otp={otp}
-                          setOtp={setOtp}
-                          onEditPhone={() => setStep("phone")}
-                          resendTimer={resendTimer}
-                          onResend={onResend}
-                          phone={form.phone}
-                          isResending={isResending}
-                          isVerifying={isVerifying}
-                          verified={verified}
-                          attemptsLeft={attemptsLeft}
-                          locked={
-                            locked ||
-                            (typeof attemptsLeft === "number" &&
-                              attemptsLeft <= 0) ||
-                            false
-                          }
-                          errorSend={errorSend}
-                          resendLeft={resendLeft}
-                          onSubmit={onVerify}
-                          brandColor={PINK}
-                        />
+                {!!registerError && (
+                  <Alert
+                    severity="error"
+                    variant="filled"
+                    sx={{
+                      bgcolor: "#ff1744",
+                      color: "white",
+                      width: "100%",
+                      maxWidth: 520,
+                    }}
+                  >
+                    {registerError}
+                  </Alert>
+                )}
+              </Stack>
 
-                        {isVerifying && (
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            alignItems="center"
-                          >
-                            <CircularProgress
-                              size={18}
-                              sx={{ color: "#fff" }}
-                            />
-                            <Typography variant="body2" color="white">
-                              Verificando / Registrando…
-                            </Typography>
-                          </Stack>
-                        )}
-                      </>
-                    )}
-                  </Stack>
-                </Paper>
-              )}
-
-              {/* Imagen inferior (premio) con espacio reservado */}
+              {/* Imagen inferior (premio) */}
               <Box
                 sx={{
                   width: "100%",
@@ -603,7 +488,6 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
                   overflow: "hidden",
                   position: "relative",
                   aspectRatio: prizeRatio,
-                  boxShadow: "0 10px 28px rgba(0,0,0,.15)",
                 }}
               >
                 <Image
@@ -618,6 +502,7 @@ export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
             </Paper>
           )}
       </Container>
+
       <ProfileSelector
         open={showProfileSelector}
         onClose={() => setShowProfileSelector(false)}

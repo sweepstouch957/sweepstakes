@@ -82,6 +82,7 @@ export default function LoginCard({
           background: "#fff",
           color: PINK,
           boxShadow: "0 14px 34px rgba(255,0,128,.35)",
+          marginTop: 24,
         }}
       >
         {loading ? "Entrando..." : "Entrar"}
