@@ -45,7 +45,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-
   const [user, setUser] = useState<User | null>(null);
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(false);
@@ -71,16 +70,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleSetStore = useCallback((store: Store | null) => {
     setStore(store);
-    if (store) {
-      Cookies.set("storeId", store._id);
-    } else {
-      Cookies.remove("storeId");
-    }
+    if (store) Cookies.set("storeId", store._id);
+    else Cookies.remove("storeId");
   }, []);
+
+  // 🔐 roles permitidos
+  const ALLOWED_ROLES = useMemo(() => new Set(["merchant", "promotor"]), []);
 
   const fetchAndSetUser = useCallback(async () => {
     const response = await getMe();
-    const fetchedUser = response.user;
+    const fetchedUser = response.user as User;
+
+    // 🚫 Bloquear si el rol no está permitido
+    if (!ALLOWED_ROLES.has(fetchedUser.role)) {
+      toast.error(
+        `No puedes iniciar sesión con el rol "${fetchedUser.role}". Contacta a soporte.`
+      );
+      // logout silencioso (sin el toast "Sesión cerrada")
+      setUser(null);
+      setStore(null);
+      Cookies.remove("storeId");
+      Cookies.remove("auth_token");
+      const err = new Error("__role_blocked");
+      throw err;
+    }
+
     setUser(fetchedUser);
 
     if (fetchedUser.role === "merchant") {
@@ -88,7 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } else if (fetchedUser.role === "promotor") {
       await loadPromotorStore();
     }
-  }, [loadMerchantStore, loadPromotorStore]);
+  }, [ALLOWED_ROLES, loadMerchantStore, loadPromotorStore]);
 
   const login = useCallback(
     async (email: string, password: string) => {
@@ -97,7 +111,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await loginService(email, password);
         await fetchAndSetUser();
       } catch (error: any) {
-        toast.error(error.response?.data?.error || "Error al iniciar sesión");
+        // Evitar doble toast si viene del bloqueo de rol
+        if (error?.message !== "__role_blocked") {
+          toast.error(
+            error?.response?.data?.error || "Error al iniciar sesión"
+          );
+        }
       } finally {
         setLoading(false);
       }
@@ -118,10 +137,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     Cookies.remove("storeId");
   }, []);
 
-  // 🧠 Si hay storeId en URL, no hacemos sesión
   useEffect(() => {
     const checkSession = async () => {
-      const urlStoreId = new URLSearchParams(window.location.search).get("store");
+      const urlStoreId = new URLSearchParams(window.location.search).get(
+        "store"
+      );
       if (urlStoreId) {
         setIsLoaded(true); // flujo público, omitimos getMe
         return;
@@ -149,19 +169,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       logout,
       changeStore,
       handleSetStore,
-      setIsLoaded, // 👈 nuevo
+      setIsLoaded, 
     }),
-    [
-      user,
-      loading,
-      isLoaded,
-      store,
-      login,
-      logout,
-      changeStore,
-      handleSetStore,
-      setIsLoaded,
-    ]
+    [user, loading, isLoaded, store, login, logout, changeStore, handleSetStore]
   );
 
   return (
@@ -171,8 +181,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };

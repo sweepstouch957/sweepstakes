@@ -138,7 +138,7 @@ const NoActiveShiftCard = () => (
 
 /* ---------- Componente principal ---------- */
 
-export default function RegisterForm({ image = LaborDay, prizeImage }: Props) {
+export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
   const {
     // form & handlers
     form,
