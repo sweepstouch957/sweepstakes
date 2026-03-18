@@ -225,6 +225,30 @@ export default function PromoterDrawer({
 
         <Divider sx={{ borderColor: "rgba(148, 163, 184, 0.1)" }} />
 
+        {/* Ver app / metrics */}
+        <Box sx={{ p: 2.5, pb: 0 }}>
+          <Link
+            href={user?.accessCode ? `https://work.sweepstouch.com?ac=${user.accessCode}` : "https://work.sweepstouch.com"}
+            target="_blank"
+            style={{ textDecoration: "none" }}
+          >
+            <Button
+              variant="outlined"
+              fullWidth
+              sx={{
+                color: ACCENT,
+                borderColor: `rgba(255, 0, 128, 0.5)`,
+                "&:hover": { borderColor: ACCENT, bgcolor: "rgba(255, 0, 128, 0.08)" },
+                borderRadius: 999,
+                fontWeight: 800,
+                textTransform: "none",
+              }}
+            >
+              Ver Métricas / Abrir App
+            </Button>
+          </Link>
+        </Box>
+
         {/* Últimos números (local) */}
         <Box sx={{ p: 2.5, pt: 2 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
