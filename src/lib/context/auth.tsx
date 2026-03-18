@@ -10,7 +10,11 @@ import {
   useMemo,
 } from "react";
 import toast from "react-hot-toast";
-import { login as loginService, getMe } from "@/lib/services/auth.service";
+import {
+  login as loginService,
+  loginWithAccessCode as loginWithAccessCodeService,
+  getMe,
+} from "@/lib/services/auth.service";
 import { getStore, getStoreByOwnerId } from "../services/store.service";
 import { Store } from "./store";
 import Cookies from "js-cookie";
@@ -35,11 +39,12 @@ interface AuthContextType {
   loading: boolean;
   isLoaded: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithAccessCode: (accessCode: string) => Promise<void>;
   logout: () => void;
   changeStore: () => void;
   store: Store | null;
   handleSetStore: (store: Store | null) => void;
-  setIsLoaded: (value: boolean) => void; // 👈 nuevo
+  setIsLoaded: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,7 +91,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.error(
         `No puedes iniciar sesión con el rol "${fetchedUser.role}". Contacta a soporte.`
       );
-      // logout silencioso (sin el toast "Sesión cerrada")
       setUser(null);
       setStore(null);
       Cookies.remove("storeId");
@@ -111,10 +115,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await loginService(email, password);
         await fetchAndSetUser();
       } catch (error: any) {
-        // Evitar doble toast si viene del bloqueo de rol
         if (error?.message !== "__role_blocked") {
           toast.error(
             error?.response?.data?.error || "Error al iniciar sesión"
+          );
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchAndSetUser]
+  );
+
+  const loginWithAccessCode = useCallback(
+    async (accessCode: string) => {
+      try {
+        setLoading(true);
+        await loginWithAccessCodeService(accessCode);
+        await fetchAndSetUser();
+      } catch (error: any) {
+        if (error?.message !== "__role_blocked") {
+          toast.error(
+            error?.response?.data?.error || "Código de acceso inválido"
           );
         }
       } finally {
@@ -139,11 +161,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const urlStoreId = new URLSearchParams(window.location.search).get(
-        "store"
-      );
+      const params = new URLSearchParams(window.location.search);
+
+      const urlStoreId = params.get("store");
       if (urlStoreId) {
-        setIsLoaded(true); // flujo público, omitimos getMe
+        setIsLoaded(true);
+        return;
+      }
+
+      // Auto-login with accessCode from URL (?ac=<code>)
+      const accessCode = params.get("ac");
+      if (accessCode) {
+        try {
+          setLoading(true);
+          await loginWithAccessCodeService(accessCode);
+          await fetchAndSetUser();
+          // Clean the URL after successful login
+          const url = new URL(window.location.href);
+          url.searchParams.delete("ac");
+          window.history.replaceState({}, "", url.toString());
+        } catch {
+          setUser(null);
+        } finally {
+          setLoading(false);
+          setIsLoaded(true);
+        }
         return;
       }
 
@@ -166,12 +208,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isLoaded,
       store,
       login,
+      loginWithAccessCode,
       logout,
       changeStore,
       handleSetStore,
-      setIsLoaded, 
+      setIsLoaded,
     }),
-    [user, loading, isLoaded, store, login, logout, changeStore, handleSetStore]
+    [user, loading, isLoaded, store, login, loginWithAccessCode, logout, changeStore, handleSetStore]
   );
 
   return (

@@ -2,7 +2,7 @@
 import apiClient from "../http/config";
 
 // Guarda el token en localStorage
-export const getStores = async (sweeptakeId:string) => {
+export const getStores = async (sweeptakeId: string) => {
   const res = await apiClient.get(`/sweepstakes/${sweeptakeId}/stores`);
   return res.data;
 };

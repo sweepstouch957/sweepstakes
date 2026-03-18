@@ -24,14 +24,11 @@ type MinimalShift = {
   storeInfo?: any;
   sweepstakeId?: string;
   endTime?: string | Date;
-  // métricas opcionales (si vienen del backend)
   totalParticipations?: number;
   newParticipations?: number;
   existingParticipations?: number;
   totalEarnings?: number;
 };
-
-const PINK = "#ff0080";
 
 const getErrorMessage = (
   err: unknown,
@@ -57,7 +54,14 @@ const formatE164FromUS = (rawPhone: string) => {
 
 export const usePromotorPage = () => {
   const qc = useQueryClient();
-  const { user, login, loading: authLoading, isLoaded, logout } = useAuth();
+  const {
+    user,
+    login,
+    loginWithAccessCode,
+    loading: authLoading,
+    isLoaded,
+    logout,
+  } = useAuth();
 
   // ---- Form auth/registro
   const [form, setForm] = useState({ phone: "", username: "", password: "" });
@@ -122,6 +126,11 @@ export const usePromotorPage = () => {
     },
   });
 
+  // ---- AccessCode login
+  const handleAccessCodeLogin = async (accessCode: string) => {
+    await loginWithAccessCode(accessCode);
+  };
+
   // ---- Registro de participación (DIRECTO, sin OTP)
   const [registerError, setRegisterError] = useState<string | null>(null);
 
@@ -178,7 +187,6 @@ export const usePromotorPage = () => {
     setForm((prev) => ({ ...prev, [name]: updatedValue }));
   };
 
-  // Ahora el submit REGISTRA directamente
   const onPhoneSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setRegisterError(null);
@@ -240,6 +248,7 @@ export const usePromotorPage = () => {
 
     // login
     handleLoginSubmit,
+    handleAccessCodeLogin,
     loading,
     isLoaded,
 

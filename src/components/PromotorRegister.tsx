@@ -17,44 +17,32 @@ import {
   TextField,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import Image from "next/image";
-import Link from "next/link";
+import CampaignRoundedIcon from "@mui/icons-material/CampaignRounded";
 
-import ImageBackgroundMobile from "@public/Carro.webp";
-import LaborDay from "@public/LaborDay.webp";
-
-// ❌ Eliminado: import OtpStep from "./Otp";
 import LoginCard from "./LoginCard";
 import PromoterDrawer from "./Drawer";
 
 import { usePromotorPage } from "@/hooks/usePromotorPage";
 import ProfileSelector from "./ProfileSelector";
+import Link from "next/link";
 
-const PINK = "#ff0080";
-const PINK_LIGHT = "#ff66b3";
+const ACCENT = "#ff0080";
+const BG_DARK = "#0f172a";
+const BG_SURFACE = "#1e293b";
+const BG_SURFACE_LIGHT = "#334155";
 
-interface MediaProps {
-  src: string;
-  width: number;
-  height: number;
-}
-interface Props {
-  image?: MediaProps;
-  prizeImage?: MediaProps;
-}
-
-/* ---------- UI helpers (MUI puro) ---------- */
+/* ---------- UI helpers ---------- */
 
 const BeautifulSpinner = () => (
   <Box sx={{ display: "grid", placeItems: "center", width: "100%", py: 4 }}>
     <Box
       sx={{
-        width: 64,
-        height: 64,
+        width: 56,
+        height: 56,
         borderRadius: "50%",
-        border: "4px solid rgba(255,255,255,0.35)",
-        borderTopColor: "#fff",
-        animation: "spin 1s linear inf  te",
+        border: "3px solid rgba(255,0,128,0.15)",
+        borderTopColor: ACCENT,
+        animation: "spin 0.8s linear infinite",
         "@keyframes spin": {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
@@ -72,22 +60,16 @@ const CentralSkeleton = () => (
     <Skeleton
       variant="rectangular"
       width="100%"
-      height={220}
-      sx={{ borderRadius: 4, opacity: 0.85 }}
+      height={200}
+      sx={{ borderRadius: 4, bgcolor: "rgba(148,163,184,0.08)" }}
     />
-    <Skeleton variant="text" width="80%" sx={{ fontSize: "2.2rem", mt: 1 }} />
-    <Skeleton variant="text" width="60%" sx={{ fontSize: "1.2rem" }} />
+    <Skeleton variant="text" width="80%" sx={{ fontSize: "2rem", bgcolor: "rgba(148,163,184,0.08)" }} />
+    <Skeleton variant="text" width="60%" sx={{ fontSize: "1rem", bgcolor: "rgba(148,163,184,0.08)" }} />
     <Skeleton
       variant="rectangular"
       width="100%"
-      height={88}
-      sx={{ borderRadius: 10, mt: 1 }}
-    />
-    <Skeleton
-      variant="rectangular"
-      width="100%"
-      height={180}
-      sx={{ borderRadius: 4, mt: 2, opacity: 0.85 }}
+      height={80}
+      sx={{ borderRadius: 3, bgcolor: "rgba(148,163,184,0.08)" }}
     />
   </Stack>
 );
@@ -99,17 +81,32 @@ const NoActiveShiftCard = () => (
       width: "100%",
       maxWidth: 720,
       textAlign: "center",
-      p: 3,
-      background: "rgba(255,255,255,0.12)",
-      border: "1px solid rgba(255,255,255,0.25)",
-      backdropFilter: "blur(8px)",
-      color: "#fff",
+      p: 4,
+      background: "rgba(30, 41, 59, 0.7)",
+      border: "1px solid rgba(148, 163, 184, 0.12)",
+      backdropFilter: "blur(16px)",
+      borderRadius: 4,
+      color: "#f1f5f9",
     }}
   >
-    <Typography variant="h5" fontWeight={800} sx={{ mb: 1 }}>
-      No tenés un turno activo en este momento.
+    <Box
+      sx={{
+        width: 64,
+        height: 64,
+        borderRadius: "50%",
+        background: "rgba(255,0,128, 0.1)",
+        display: "grid",
+        placeItems: "center",
+        mx: "auto",
+        mb: 2,
+      }}
+    >
+      <CampaignRoundedIcon sx={{ color: ACCENT, fontSize: 32 }} />
+    </Box>
+    <Typography variant="h5" fontWeight={800} sx={{ mb: 1, color: "#f1f5f9" }}>
+      No tenés un turno activo
     </Typography>
-    <Typography variant="body2" sx={{ color: "rgba(255,255,255,.9)", mb: 2 }}>
+    <Typography variant="body2" sx={{ color: "#94a3b8", mb: 3 }}>
       Podés revisar los turnos disponibles y aplicar en segundos.
     </Typography>
     <Button
@@ -119,16 +116,16 @@ const NoActiveShiftCard = () => (
       rel="noopener noreferrer"
       variant="contained"
       sx={{
-        backgroundColor: "#fff",
-        color: PINK,
-        "&:hover": { backgroundColor: "#fff", opacity: 0.95 },
+        background: `linear-gradient(135deg, ${ACCENT}, #ff4da6)`,
+        color: "#fff",
+        "&:hover": { opacity: 0.9 },
         borderRadius: "2rem",
         px: "2rem",
         py: "0.75rem",
-        fontSize: "1.05rem",
+        fontSize: "1rem",
         fontWeight: 800,
         textTransform: "none",
-        boxShadow: "0 10px 28px rgba(255,255,255,0.25)",
+        boxShadow: `0 8px 32px rgba(255,0,128, 0.25)`,
       }}
     >
       Buscar turnos disponibles
@@ -136,39 +133,28 @@ const NoActiveShiftCard = () => (
   </Paper>
 );
 
-/* ---------- Componente principal ---------- */
+/* ---------- Main Component ---------- */
 
-export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
+export default function RegisterForm() {
   const {
-    // form & handlers
     form,
     handleChange,
-
-    // login/auth/UI
     handleLoginSubmit,
+    handleAccessCodeLogin,
     loading,
     isLoaded,
     isPromotor,
     user,
     handleLogout,
-
-    // datos
     activeShift,
     hasActiveShift,
     sweepstake,
     storeInfo: store,
-
-    // flags
     fetchingBackground,
     resolvingShift,
-
-    // registro directo
     registerPending,
     registerError,
-
-    // submit
-    // ⤵️ Ahora este submit registra directamente sin OTP
-    registerNow, // por si lo querés llamar manual
+    registerNow,
   } = usePromotorPage();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -187,12 +173,9 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
   const showLoadingBlock = !isLoaded || resolvingShift || loading;
   const showLogin = isLoaded && !user;
 
-  const heroRatio =
-    image?.width && image?.height ? image.width / image.height : 1.7;
-  const prizeSrc = prizeImage?.src || ImageBackgroundMobile.src;
-  const prizeW = prizeImage?.width || ImageBackgroundMobile.width;
-  const prizeH = prizeImage?.height || ImageBackgroundMobile.height;
-  const prizeRatio = prizeW / prizeH;
+  // Use sweepstake image from API, fallback to placeholder
+  const sweepstakeImage = sweepstake?.image || null;
+  const sweepstakeName = sweepstake?.name || "Sorteo activo";
 
   return (
     <Box
@@ -203,19 +186,46 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
         justifyContent: "center",
         px: 2,
         py: { xs: 2, md: 4 },
-        backgroundImage: `linear-gradient(180deg, ${PINK} 0%, ${PINK_LIGHT} 100%)`,
+        background: `linear-gradient(180deg, ${BG_DARK} 0%, #0c1222 50%, ${BG_DARK} 100%)`,
+        position: "relative",
+        overflow: "hidden",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: "-50%",
+          right: "-30%",
+          width: "80%",
+          height: "100%",
+          background: `radial-gradient(ellipse, rgba(255,0,128,0.06) 0%, transparent 70%)`,
+          pointerEvents: "none",
+        },
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          bottom: "-30%",
+          left: "-20%",
+          width: "60%",
+          height: "80%",
+          background: `radial-gradient(ellipse, rgba(255,0,128,0.04) 0%, transparent 70%)`,
+          pointerEvents: "none",
+        },
       }}
     >
-      {/* Barra superior de progreso silencioso */}
+      {/* Progress bar */}
       {fetchingBackground && (
         <Box sx={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 80 }}>
           <LinearProgress
-            sx={{ "& .MuiLinearProgress-bar": { backgroundColor: PINK_LIGHT } }}
+            sx={{
+              "& .MuiLinearProgress-bar": {
+                background: `linear-gradient(90deg, ${ACCENT}, #ff4da6)`,
+              },
+              bgcolor: "rgba(255,0,128,0.1)",
+            }}
           />
         </Box>
       )}
 
-      {/* Drawer */}
+      {/* Drawer button */}
       {user && (
         <IconButton
           onClick={() => setDrawerOpen(true)}
@@ -224,10 +234,11 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
             top: 12,
             right: 12,
             zIndex: 90,
-            bgcolor: "#ffffff",
-            color: PINK,
-            boxShadow: "0 10px 24px rgba(255,255,255,.25)",
-            "&:hover": { bgcolor: "#fff" },
+            bgcolor: BG_SURFACE,
+            color: ACCENT,
+            border: "1px solid rgba(255,0,128,0.2)",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+            "&:hover": { bgcolor: BG_SURFACE_LIGHT },
           }}
           aria-label="Abrir panel"
         >
@@ -242,7 +253,6 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
           user={user}
           activeShift={activeShift}
           hasActiveShift={!!hasActiveShift}
-          // timeLeft ahora viene del hook, si lo quieres mostrar agrega la prop
           timeLeft={undefined as any}
           handleLogout={handleLogout}
           recentPhones={[]}
@@ -251,9 +261,15 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
 
       <Container
         maxWidth="md"
-        sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          position: "relative",
+          zIndex: 1,
+        }}
       >
-        {/* BLOQUE DE CARGA */}
+        {/* LOADING */}
         {showLoadingBlock && !showLogin && (
           <>
             <CentralSkeleton />
@@ -261,7 +277,7 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
           </>
         )}
 
-        {/* LOGIN (card rosada) */}
+        {/* LOGIN */}
         {showLogin && (
           <LoginCard
             form={{
@@ -270,11 +286,12 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
             }}
             handleChange={handleChange}
             handleLoginSubmit={handleLoginSubmit}
+            handleAccessCodeLogin={handleAccessCodeLogin}
             loading={loading}
           />
         )}
 
-        {/* NO ES PROMOTOR */}
+        {/* NOT A PROMOTOR */}
         {!showLoadingBlock && user && !isPromotor && (
           <Paper
             elevation={0}
@@ -282,11 +299,12 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
               width: "100%",
               maxWidth: 720,
               textAlign: "center",
-              p: 3,
-              background: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.25)",
-              color: "#fff",
-              backdropFilter: "blur(8px)",
+              p: 4,
+              background: "rgba(30, 41, 59, 0.7)",
+              border: "1px solid rgba(148, 163, 184, 0.12)",
+              color: "#f1f5f9",
+              backdropFilter: "blur(16px)",
+              borderRadius: 4,
             }}
           >
             <Typography variant="h6" fontWeight={800}>
@@ -295,13 +313,13 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
           </Paper>
         )}
 
-        {/* SIN TURNO ACTIVO */}
+        {/* NO ACTIVE SHIFT */}
         {!showLoadingBlock &&
           user &&
           isPromotor &&
           (!hasActiveShift || !activeShift) && <NoActiveShiftCard />}
 
-        {/* FORMULARIO: SOLO CON TURNO ACTIVO (sin OTP) */}
+        {/* FORM: WITH ACTIVE SHIFT */}
         {!showLoadingBlock &&
           user &&
           isPromotor &&
@@ -316,76 +334,92 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
               elevation={0}
               sx={{
                 width: "100%",
-                maxWidth: 860,
-                px: { xs: 2, sm: 3, md: 4 },
-                py: { xs: 2, sm: 3 },
-                borderRadius: 3,
-                backgroundImage: `linear-gradient(180deg, ${PINK} 0%, ${PINK_LIGHT} 100%)`,
-                boxShadow: "0 18px 42px rgba(255,0,128,0.22)",
-                border: "1px solid rgba(255,255,255,0.18)",
+                maxWidth: 520,
+                px: { xs: 2.5, sm: 3.5 },
+                py: { xs: 3, sm: 4 },
+                borderRadius: 4,
+                background: "rgba(30, 41, 59, 0.75)",
+                backdropFilter: "blur(24px)",
+                border: "1px solid rgba(148, 163, 184, 0.1)",
+                boxShadow: "0 24px 64px rgba(0,0,0,0.3)",
               }}
             >
-              {/* Imagen superior */}
-              <Box
-                sx={{
-                  width: "100%",
-                  maxWidth: 520,
-                  mx: "auto",
-                  borderRadius: 2,
-                  overflow: "hidden",
-                  position: "relative",
-                  aspectRatio: heroRatio,
-                }}
-              >
-                <Image
-                  src={image.src}
-                  alt={sweepstake?.name || "Sweepstake"}
-                  fill
-                  priority
-                  sizes="(max-width: 640px) 90vw, 500px"
-                  style={{ objectFit: "cover" }}
-                />
-              </Box>
+              {/* Sweepstake Image */}
+              {sweepstakeImage ? (
+                <Box
+                  sx={{
+                    width: "100%",
+                    borderRadius: 3,
+                    overflow: "hidden",
+                    position: "relative",
+                    aspectRatio: "16/9",
+                    mb: 2.5,
+                    border: "1px solid rgba(148,163,184,0.08)",
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={sweepstakeImage}
+                    alt={sweepstakeName}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    width: "100%",
+                    borderRadius: 3,
+                    aspectRatio: "16/9",
+                    mb: 2.5,
+                    background: `linear-gradient(135deg, rgba(255,0,128,0.1), rgba(255,0,128,0.05))`,
+                    border: "1px solid rgba(255,0,128,0.15)",
+                    display: "grid",
+                    placeItems: "center",
+                  }}
+                >
+                  <CampaignRoundedIcon sx={{ fontSize: 48, color: "rgba(255,0,128,0.3)" }} />
+                </Box>
+              )}
 
-              {/* Título */}
-              <Stack alignItems="center" sx={{ mt: 2, mb: 1 }}>
+              {/* Title */}
+              <Stack alignItems="center" sx={{ mb: 3 }}>
                 <Typography
-                  variant="h3"
+                  variant="h5"
                   sx={{
                     textAlign: "center",
-                    color: "#fff",
-                    fontWeight: 300,
-                    lineHeight: 1.1,
+                    color: "#f1f5f9",
+                    fontWeight: 800,
+                    lineHeight: 1.2,
+                    mb: 0.5,
                   }}
                 >
-                  <Box
-                    component="span"
-                    sx={{ fontWeight: 900, fontSize: { xs: 34, md: 44 } }}
+                  {sweepstakeName}
+                </Typography>
+                {store?.name && (
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "#94a3b8", textAlign: "center" }}
                   >
-                    {sweepstake?.name || "Sweepstake Name"}
-                  </Box>
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: "rgba(255,255,255,.9)",
-                    textAlign: "center",
-                    mt: 1,
-                  }}
-                >
-                  {store?.name}
-                </Typography>
+                    {store.name}
+                  </Typography>
+                )}
               </Stack>
 
-              {/* Único paso: Teléfono → registra */}
-              <Stack spacing={1.5} alignItems="center" sx={{ mt: 1 }}>
-                <Box sx={{ width: "100%", maxWidth: 520 }}>
+              {/* Phone input */}
+              <Stack spacing={2} alignItems="center">
+                <Box sx={{ width: "100%" }}>
                   <Typography
                     variant="subtitle2"
                     sx={{
-                      color: "rgba(255,255,255,.9)",
-                      mb: 0.5,
+                      color: "#94a3b8",
+                      mb: 0.75,
                       fontWeight: 600,
+                      fontSize: 13,
                     }}
                   >
                     Número de teléfono
@@ -405,7 +439,7 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Typography sx={{ color: PINK, fontWeight: 800 }}>
+                          <Typography sx={{ color: ACCENT, fontWeight: 800, fontSize: 15 }}>
                             +1
                           </Typography>
                         </InputAdornment>
@@ -413,25 +447,27 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
                     }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        backgroundColor: "#fff",
-                        color: PINK,
+                        backgroundColor: BG_SURFACE,
+                        color: "#f1f5f9",
                         fontWeight: 600,
                         borderRadius: 3,
-                        boxShadow: "0 8px 20px rgba(255,0,128,0.18)",
-                        "& fieldset": { borderColor: "rgba(255,255,255,0.85)" },
+                        fontSize: 16,
+                        "& fieldset": {
+                          borderColor: BG_SURFACE_LIGHT,
+                        },
                         "&:hover fieldset": {
-                          borderColor: "rgba(255,255,255,0.95)",
+                          borderColor: "rgba(255,0,128,0.4)",
                         },
                         "&.Mui-focused fieldset": {
-                          borderColor: PINK,
-                          boxShadow: "0 0 0 4px rgba(255,0,128,0.18)",
+                          borderColor: ACCENT,
+                          boxShadow: `0 0 0 3px rgba(255,0,128,0.15)`,
                         },
                       },
                       "& .MuiInputBase-input::placeholder": {
-                        color: "rgba(255,0,128,0.55)",
+                        color: "#64748b",
                         opacity: 1,
                       },
-                      caretColor: PINK,
+                      caretColor: ACCENT,
                     }}
                   />
                 </Box>
@@ -442,19 +478,21 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
                   variant="contained"
                   sx={{
                     width: "100%",
-                    maxWidth: 520,
-                    height: 56,
+                    height: 52,
                     borderRadius: 999,
-                    fontWeight: 900,
-                    fontSize: 18,
+                    fontWeight: 800,
+                    fontSize: 16,
                     textTransform: "none",
-                    backgroundColor: "#fff",
-                    color: PINK,
-                    boxShadow: "0 14px 34px rgba(255,255,255,0.35)",
+                    background: `linear-gradient(135deg, ${ACCENT}, #ff4da6)`,
+                    color: "#fff",
+                    boxShadow: `0 8px 32px rgba(255,0,128, 0.25)`,
                     "&:hover": {
-                      backgroundColor: "#fff",
-                      opacity: 0.96,
-                      boxShadow: "0 18px 40px rgba(255,255,255,0.42)",
+                      opacity: 0.92,
+                      boxShadow: `0 12px 40px rgba(255,0,128, 0.35)`,
+                    },
+                    "&.Mui-disabled": {
+                      background: BG_SURFACE_LIGHT,
+                      color: "#64748b",
                     },
                   }}
                 >
@@ -466,39 +504,18 @@ export default function  RegisterForm({ image = LaborDay, prizeImage }: Props) {
                     severity="error"
                     variant="filled"
                     sx={{
-                      bgcolor: "#ff1744",
-                      color: "white",
+                      bgcolor: "rgba(239, 68, 68, 0.15)",
+                      color: "#fca5a5",
+                      border: "1px solid rgba(239, 68, 68, 0.3)",
                       width: "100%",
-                      maxWidth: 520,
+                      borderRadius: 2,
+                      "& .MuiAlert-icon": { color: "#ef4444" },
                     }}
                   >
                     {registerError}
                   </Alert>
                 )}
               </Stack>
-
-              {/* Imagen inferior (premio) */}
-              <Box
-                sx={{
-                  width: "100%",
-                  maxWidth: 520,
-                  mx: "auto",
-                  mt: 3,
-                  borderRadius: 2,
-                  overflow: "hidden",
-                  position: "relative",
-                  aspectRatio: prizeRatio,
-                }}
-              >
-                <Image
-                  src={prizeSrc}
-                  alt="Premio"
-                  fill
-                  priority
-                  sizes="(max-width: 640px) 90vw, 520px"
-                  style={{ objectFit: "cover" }}
-                />
-              </Box>
             </Paper>
           )}
       </Container>

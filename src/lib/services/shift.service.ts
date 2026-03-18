@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Store } from "../context/store";
-import { api } from "../http/api";
+import api from "../http/config";
 
-;
+
 
 export interface Shift {
   _id: string;

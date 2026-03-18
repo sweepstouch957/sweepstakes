@@ -25,7 +25,7 @@ import PaidRoundedIcon from "@mui/icons-material/PaidRounded";
 import TimelineRoundedIcon from "@mui/icons-material/TimelineRounded";
 import Link from "next/link";
 
-const PINK = "#ff0080";
+const ACCENT = "#ff0080";
 
 export interface PromoterDrawerProps {
   open: boolean;
@@ -66,10 +66,11 @@ export default function PromoterDrawer({
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          background: "linear-gradient(180deg, #ff0080 0%, #ff4da6 100%)",
-          color: "#fff",
+          background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
+          color: "#f1f5f9",
         }}
       >
+        {/* Header */}
         <Box
           sx={{
             p: 2.5,
@@ -84,13 +85,13 @@ export default function PromoterDrawer({
               width: 48,
               height: 48,
               borderRadius: "50%",
-              background: "#fff",
-              color: PINK,
+              background: `linear-gradient(135deg, ${ACCENT}, #ff4da6)`,
+              color: "#fff",
               display: "grid",
               placeItems: "center",
-              boxShadow: "0 8px 20px rgba(255,255,255,.25)",
+              boxShadow: `0 8px 24px rgba(255, 0, 128, 0.3)`,
               fontWeight: 900,
-              overflow: "hidden", // importante para el recorte del img
+              overflow: "hidden",
             }}
           >
             {user?.profileImage ? (
@@ -113,7 +114,7 @@ export default function PromoterDrawer({
             )}
           </Box>
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontWeight: 900, lineHeight: 1.2 }}>
+            <Typography sx={{ fontWeight: 800, lineHeight: 1.2, color: "#f1f5f9" }}>
               {`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() ||
                 "Promotor"}
             </Typography>
@@ -122,35 +123,40 @@ export default function PromoterDrawer({
               label={user?.role || "promotor"}
               sx={{
                 mt: 0.5,
-                bgcolor: "rgba(255,255,255,.15)",
-                color: "#fff",
-                border: "1px solid rgba(255,255,255,.35)",
+                bgcolor: "rgba(255, 0, 128, 0.15)",
+                color: ACCENT,
+                border: `1px solid rgba(255, 0, 128, 0.3)`,
+                fontWeight: 700,
+                fontSize: 11,
               }}
             />
           </Box>
           <IconButton
             onClick={handleLogout}
-            sx={{ color: "#fff" }}
+            sx={{
+              color: "#94a3b8",
+              "&:hover": { color: "#ef4444", bgcolor: "rgba(239,68,68,0.1)" },
+            }}
             aria-label="Cerrar sesión"
           >
             <LogoutIcon />
           </IconButton>
         </Box>
 
-        <Divider sx={{ borderColor: "rgba(255,255,255,.25)" }} />
+        <Divider sx={{ borderColor: "rgba(148, 163, 184, 0.1)" }} />
 
         {/* Info contacto */}
         <Box sx={{ p: 2.5, pt: 2 }}>
           <Stack spacing={1.2}>
             <Stack direction="row" alignItems="center" spacing={1.2}>
-              <EmailRoundedIcon fontSize="small" />
-              <Typography sx={{ fontSize: 14, wordBreak: "break-all" }}>
+              <EmailRoundedIcon fontSize="small" sx={{ color: "#94a3b8" }} />
+              <Typography sx={{ fontSize: 14, color: "#94a3b8", wordBreak: "break-all" }}>
                 {user?.email ?? "—"}
               </Typography>
             </Stack>
             <Stack direction="row" alignItems="center" spacing={1.2}>
-              <LocalPhoneRoundedIcon fontSize="small" />
-              <Typography sx={{ fontSize: 14 }}>
+              <LocalPhoneRoundedIcon fontSize="small" sx={{ color: "#94a3b8" }} />
+              <Typography sx={{ fontSize: 14, color: "#94a3b8" }}>
                 {user?.phoneNumber ?? "—"}
               </Typography>
             </Stack>
@@ -162,31 +168,32 @@ export default function PromoterDrawer({
           {hasActiveShift ? (
             <Stack spacing={1.2}>
               <Stack direction="row" alignItems="center" spacing={1}>
-                <StoreMallDirectoryRoundedIcon fontSize="small" />
-                <Typography sx={{ fontSize: 14 }}>
+                <StoreMallDirectoryRoundedIcon fontSize="small" sx={{ color: ACCENT }} />
+                <Typography sx={{ fontSize: 14, color: "#e2e8f0" }}>
                   {activeShift?.storeInfo?.name ?? "Tienda sin nombre"}
                 </Typography>
               </Stack>
               <Stack direction="row" alignItems="center" spacing={1}>
-                <AccessTimeFilledRoundedIcon fontSize="small" />
-                <Typography sx={{ fontSize: 14 }}>
+                <AccessTimeFilledRoundedIcon fontSize="small" sx={{ color: ACCENT }} />
+                <Typography sx={{ fontSize: 14, color: "#e2e8f0" }}>
                   {timeLeft || "Turno activo"}
                 </Typography>
               </Stack>
             </Stack>
           ) : (
             <Stack spacing={1.2}>
-              <Typography sx={{ fontWeight: 800 }}>Sin turno activo</Typography>
+              <Typography sx={{ fontWeight: 800, color: "#94a3b8" }}>Sin turno activo</Typography>
               <Link href="https://work.sweepstouch.com/" target="_blank">
                 <Button
                   variant="contained"
                   fullWidth
                   sx={{
-                    backgroundColor: "#fff",
-                    color: PINK,
-                    "&:hover": { backgroundColor: "#fff", opacity: 0.95 },
+                    background: `linear-gradient(135deg, ${ACCENT}, #ff4da6)`,
+                    color: "#fff",
+                    "&:hover": { opacity: 0.9 },
                     borderRadius: 999,
-                    fontWeight: 900,
+                    fontWeight: 800,
+                    textTransform: "none",
                   }}
                 >
                   Buscar turnos disponibles
@@ -196,11 +203,11 @@ export default function PromoterDrawer({
           )}
         </Box>
 
-        <Divider sx={{ borderColor: "rgba(255,255,255,.25)" }} />
+        <Divider sx={{ borderColor: "rgba(148, 163, 184, 0.1)" }} />
 
         {/* Stats */}
         <Box sx={{ p: 2.5 }}>
-          <Typography sx={{ fontWeight: 900, mb: 1 }}>
+          <Typography sx={{ fontWeight: 800, mb: 1.5, color: "#f1f5f9" }}>
             Estadísticas del turno
           </Typography>
           <Stack direction="row" spacing={1.5}>
@@ -209,23 +216,23 @@ export default function PromoterDrawer({
             <StatCard label="Existentes" value={stats.existentes} />
           </Stack>
           <Box sx={{ mt: 1.5, display: "flex", alignItems: "center", gap: 1 }}>
-            <PaidRoundedIcon fontSize="small" />
-            <Typography sx={{ fontSize: 14 }}>
-              Ganancias: <b>${Number(stats.earnings || 0).toFixed(2)}</b>
+            <PaidRoundedIcon fontSize="small" sx={{ color: "#10b981" }} />
+            <Typography sx={{ fontSize: 14, color: "#e2e8f0" }}>
+              Ganancias: <b style={{ color: "#10b981" }}>${Number(stats.earnings || 0).toFixed(2)}</b>
             </Typography>
           </Box>
         </Box>
 
-        <Divider sx={{ borderColor: "rgba(255,255,255,.25)" }} />
+        <Divider sx={{ borderColor: "rgba(148, 163, 184, 0.1)" }} />
 
         {/* Últimos números (local) */}
         <Box sx={{ p: 2.5, pt: 2 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <TimelineRoundedIcon fontSize="small" />
-            <Typography sx={{ fontWeight: 900 }}>Últimos números</Typography>
+            <TimelineRoundedIcon fontSize="small" sx={{ color: ACCENT }} />
+            <Typography sx={{ fontWeight: 800, color: "#f1f5f9" }}>Últimos números</Typography>
           </Stack>
           {recentPhones.length === 0 ? (
-            <Typography sx={{ mt: 1, opacity: 0.9 }}>
+            <Typography sx={{ mt: 1, color: "#64748b" }}>
               Sin registros recientes.
             </Typography>
           ) : (
@@ -234,7 +241,7 @@ export default function PromoterDrawer({
                 <ListItem key={`${p}-${i}`} sx={{ py: 0.2 }}>
                   <ListItemText
                     primaryTypographyProps={{
-                      sx: { color: "#fff", fontWeight: 700 },
+                      sx: { color: "#e2e8f0", fontWeight: 600, fontSize: 13 },
                     }}
                     primary={p}
                   />
@@ -247,8 +254,8 @@ export default function PromoterDrawer({
         <Box sx={{ flex: 1 }} />
 
         {/* Footer */}
-        <Box sx={{ p: 2.5, pt: 0.5, opacity: 0.9 }}>
-          <Typography variant="caption">
+        <Box sx={{ p: 2.5, pt: 0.5 }}>
+          <Typography variant="caption" sx={{ color: "#475569" }}>
             Sweepstouch • Panel del promotor
           </Typography>
         </Box>
@@ -264,13 +271,13 @@ function StatCard({ label, value }: { label: string; value: number }) {
         flex: 1,
         p: 1.25,
         borderRadius: 2,
-        bgcolor: "rgba(255,255,255,.14)",
-        border: "1px solid rgba(255,255,255,.35)",
+        bgcolor: "rgba(255, 0, 128, 0.08)",
+        border: "1px solid rgba(255, 0, 128, 0.15)",
         textAlign: "center",
       }}
     >
-      <Typography sx={{ fontSize: 12.5, opacity: 0.9 }}>{label}</Typography>
-      <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
+      <Typography sx={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>{label}</Typography>
+      <Typography sx={{ fontSize: 22, fontWeight: 900, color: "#f1f5f9" }}>
         {value ?? 0}
       </Typography>
     </Box>
